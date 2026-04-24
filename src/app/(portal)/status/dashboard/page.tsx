@@ -41,7 +41,7 @@ export default async function StatusDashboard() {
 
   const settings = await prisma.systemSettings.findFirst();
   const statuses = await prisma.applicationStatus.findMany();
-  const statusMeta = statuses.find(s => s.value === application.status);
+  const statusMeta = statuses.find((s: typeof statuses[0]) => s.value === application.status);
 
   // Map status to a rich gradient / icon profile
   let StatusIcon = Clock;
