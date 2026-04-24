@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 
 /**
  * MIGRATION SCRIPT: Migrate old SHA-256 hashed passwords to bcryptjs

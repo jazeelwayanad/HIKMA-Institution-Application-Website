@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { deleteCourse } from "@/app/actions/adminCourses";
+import { deleteCourse, createCourse } from "@/app/actions/adminCourses";
 import { redirect } from "next/navigation";
 import { Eye, Trash2, ExternalLink } from "lucide-react";
 

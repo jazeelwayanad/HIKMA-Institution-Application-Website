@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminRoute } from "./adminAuth";
 import { revalidatePath } from "next/cache";
 
-export async function createCourse(data: { title: string, description: string, fee: number, formTemplateId: string }) {
+export async function createCourse(data: { title: string, description: string, fee: number, formTemplateId?: string | null }) {
   await requireAdminRoute();
   
   try {
@@ -41,7 +41,7 @@ export async function updateCourseStatus(courseId: string, status: "DRAFT" | "OP
   }
 }
 
-export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, formTemplateId: string }) {
+export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, formTemplateId?: string | null }) {
   await requireAdminRoute();
 
   try {

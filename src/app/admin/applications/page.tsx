@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { ApplicationsTableClient } from "./applications-table-client";
 import { ApplicationsPagination } from "./applications-pagination";
 import { ApplicationsFilters } from "./filters";

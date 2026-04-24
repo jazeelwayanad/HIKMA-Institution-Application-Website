@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/admin/page-header"; // Assuming this exists or I'll just use raw HTML
 import { Button } from "@/components/ui/button";
 import { ApplicationsClientAction } from "../client-actions";
 import { Calendar, Mail, Phone, User, FileText, ArrowLeft } from "lucide-react";

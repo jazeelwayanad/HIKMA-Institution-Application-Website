@@ -49,7 +49,7 @@ export async function submitApplication(formData: FormData, schema: any[]) {
     }
 
     // Atomic auto-increment mechanism for standard AppNumbers via Prisma Transactions
-    const applicationNo = await prisma.$transaction(async (tx: any) => {
+    const applicationNo = await prisma.$transaction(async (tx) => {
       let settings = await tx.systemSettings.findFirst();
       if (!settings) {
         settings = await tx.systemSettings.create({ data: {} });

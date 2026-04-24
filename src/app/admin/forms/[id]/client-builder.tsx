@@ -67,7 +67,7 @@ function SortableFieldCard({
 }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id });
   const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : 1, opacity: isDragging ? 0.8 : 1 };
-  const fieldTypeMeta = FIELD_TYPES.find((t: typeof FIELD_TYPES[0]) => t.value === field.type);
+  const fieldTypeMeta = FIELD_TYPES.find((t: (typeof FIELD_TYPES)[number]) => t.value === field.type);
   const IconComponent = fieldTypeMeta?.icon || Type;
 
   return (
@@ -112,7 +112,7 @@ function SortableFieldCard({
                     }}>
                       <SelectTrigger className="bg-slate-50 border-slate-200 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {FIELD_TYPES.map((t: typeof FIELD_TYPES[0]) => {
+                        {FIELD_TYPES.map((t: (typeof FIELD_TYPES)[number]) => {
                           const TIcon = t.icon;
                           return (
                             <SelectItem key={t.value} value={t.value}>
@@ -164,7 +164,7 @@ function SortableFieldCard({
                 <div className="space-y-3">
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Allowed File Types</Label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {FILE_TYPES.map((ft: typeof FILE_TYPES[0]) => {
+                    {FILE_TYPES.map((ft: (typeof FILE_TYPES)[number]) => {
                       const checked = (field.allowedFileTypes ?? []).includes(ft.accept);
                       const isAny = ft.accept === "*";
                       const hasAny = (field.allowedFileTypes ?? []).includes("*");
@@ -338,7 +338,7 @@ export function FormBuilderClient({
         {activeTab === "form" && (
           <div className="space-y-6 max-w-3xl mx-auto">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}><SortableContext items={fields.map((f: typeof fields[0]) => f.id)} strategy={verticalListSortingStrategy}><div className="space-y-3">{fields.map((field: typeof fields[0], index: number) => <SortableFieldCard key={field.id} field={field} index={index} isActive={activeFieldId === field.id} onActivate={setActiveFieldId} onUpdateField={updateField} onRemoveField={removeField} onDuplicateField={duplicateField} onUpdateOption={updateOption} onAddOption={addOption} onRemoveOption={removeOption} onToggleFileType={toggleFileType} />)}</div></SortableContext></DndContext>
-            <div className="bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm p-5 md:p-6 text-center"><div className="flex items-center justify-center gap-2 text-sm text-slate-500 font-semibold mb-4 uppercase tracking-wider"><PlusCircle className="w-4 h-4" /> Add Next Question</div><div className="flex flex-wrap justify-center gap-2">{FIELD_TYPES.map((t: typeof FIELD_TYPES[0]) => { const TIcon = t.icon; return (<button key={t.value} onClick={() => addField(t.value)} className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-200 hover:border-slate-400 hover:bg-slate-50 text-slate-600 font-medium text-sm transition-all active:scale-95"><TIcon className="w-4 h-4" />{t.label}</button>); })}</div></div>
+            <div className="bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm p-5 md:p-6 text-center"><div className="flex items-center justify-center gap-2 text-sm text-slate-500 font-semibold mb-4 uppercase tracking-wider"><PlusCircle className="w-4 h-4" /> Add Next Question</div><div className="flex flex-wrap justify-center gap-2">{FIELD_TYPES.map((t: (typeof FIELD_TYPES)[number]) => { const TIcon = t.icon; return (<button key={t.value} onClick={() => addField(t.value)} className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-200 hover:border-slate-400 hover:bg-slate-50 text-slate-600 font-medium text-sm transition-all active:scale-95"><TIcon className="w-4 h-4" />{t.label}</button>); })}</div></div>
             <div className="flex justify-between pt-4 items-center">
               <Button onClick={() => setActiveTab("details")} variant="outline" className="h-12 px-6">Back</Button>
               <div className="flex gap-3">
