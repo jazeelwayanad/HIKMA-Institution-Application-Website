@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { uploadFile } from "@/lib/storage";
-import { Prisma } from "@prisma/client";
 
 export async function submitApplication(formData: FormData, schema: any[]) {
   try {
@@ -50,7 +49,7 @@ export async function submitApplication(formData: FormData, schema: any[]) {
     }
 
     // Atomic auto-increment mechanism for standard AppNumbers via Prisma Transactions
-    const applicationNo = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const applicationNo = await prisma.$transaction(async (tx: any) => {
       let settings = await tx.systemSettings.findFirst();
       if (!settings) {
         settings = await tx.systemSettings.create({ data: {} });
