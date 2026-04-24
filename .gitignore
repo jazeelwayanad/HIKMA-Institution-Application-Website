@@ -49,3 +49,5 @@ CLAUDE.md
 ADMIN_SECURITY.md
 seed.ts
 prisma/migrate-passwords.ts
+.vercel
+.env*.local

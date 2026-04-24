@@ -7,7 +7,12 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
+const isSupabase = connectionString?.includes("supabase.co") || connectionString?.includes("pooler.supabase.com");
+
+const pool = new Pool({ 
+  connectionString,
+  ssl: isSupabase ? { rejectUnauthorized: false } : undefined
+});
 const adapter = new PrismaPg(pool);
 
 export const prisma =

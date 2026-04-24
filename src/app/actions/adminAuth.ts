@@ -4,38 +4,44 @@ import { prisma } from "@/lib/prisma";
 import { signToken, verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-// @ts-ignore
-import * as bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
+
 
 export async function loginAdmin(formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  try {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-  if (!email || !password) return { success: false, error: "Missing credentials" };
+    if (!email || !password) return { success: false, error: "Missing credentials" };
 
-  const admin = await prisma.admin.findUnique({ where: { email } });
-  
-  if (!admin) {
-    return { success: false, error: "Invalid email or password." };
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    
+    if (!admin) {
+      return { success: false, error: "Invalid email or password." };
+    }
+
+    const isValidPassword = await bcrypt.compare(password, admin.password);
+    if (!isValidPassword) {
+      return { success: false, error: "Invalid email or password." };
+    }
+
+    const token = await signToken({ sub: admin.id, role: admin.role, adminRole: "admin", email: admin.email });
+    
+    const cookieStore = await cookies();
+    cookieStore.set({
+      name: "admin_token",
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("Login Error:", err);
+    return { success: false, error: "Database connection failed or internal error occurred." };
   }
-
-  const isValidPassword = await bcrypt.compare(password, admin.password);
-  if (!isValidPassword) {
-    return { success: false, error: "Invalid email or password." };
-  }
-
-  const token = await signToken({ sub: admin.id, role: admin.role, adminRole: "admin", email: admin.email });
-  
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name: "admin_token",
-    value: token,
-    httpOnly: true,
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  });
-
-  return { success: true };
 }
 
 export async function logoutAdmin() {
