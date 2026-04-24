@@ -33,22 +33,18 @@ export function EditStatusDialog({ status }: { status: ApplicationStatus }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <div className="group relative flex items-center cursor-pointer">
-            <Badge 
-              variant="outline" 
-              className={`px-4 py-1.5 text-sm font-medium border-2 rounded-full transition-colors hover:opacity-80
-                ${status.color === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                  status.color === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-                  status.color === 'red' ? 'bg-red-50 text-red-700 border-red-200' : 
-                  'bg-indigo-50 text-indigo-700 border-indigo-200'}`}
-            >
-              {status.label}
-            </Badge>
-          </div>
-        }
-      />
+      <DialogTrigger>
+        <Badge 
+          variant="outline" 
+          className={`px-4 py-1.5 text-sm font-medium border-2 rounded-full transition-colors hover:opacity-80 cursor-pointer
+            ${status.color === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
+              status.color === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+              status.color === 'red' ? 'bg-red-50 text-red-700 border-red-200' : 
+              'bg-indigo-50 text-indigo-700 border-indigo-200'}`}
+        >
+          {status.label}
+        </Badge>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Status: {status.label}</DialogTitle>

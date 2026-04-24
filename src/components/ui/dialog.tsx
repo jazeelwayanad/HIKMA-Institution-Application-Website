@@ -12,7 +12,11 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 }
 
 function DialogTrigger({ render, ...props }: DialogPrimitive.Trigger.Props & { render?: React.ReactElement }) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" render={render} {...props} />
+  return (
+    <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props}>
+      {render}
+    </DialogPrimitive.Trigger>
+  )
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
