@@ -59,7 +59,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ appl
             const arrayBuffer = await response.arrayBuffer();
             templateBuffer = Buffer.from(arrayBuffer);
           } catch (fetchErr: any) {
-            console.error("Cloudinary fetch error:", fetchErr.message);
+            if (process.env.NODE_ENV === "development") {
+              console.error("Cloudinary fetch error:", fetchErr.message);
+            }
             throw fetchErr;
           }
         } else {
@@ -81,8 +83,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ appl
         templateBuffer = await fs.readFile(localPath);
       }
     } catch (fetchErr: any) {
-      console.error("Failed to fetch PDF template:", fetchErr.message);
-      return new NextResponse(`Failed to load template: ${fetchErr.message}`, { status: 500 });
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to fetch PDF template:", fetchErr.message);
+      }
+      return new NextResponse("Failed to load template", { status: 500 });
     }
 
     // Load template with pdf-lib
@@ -145,7 +149,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ appl
     });
 
   } catch (error: any) {
-    console.error("PDF route error:", error.message, error.stack);
-    return new NextResponse(`PDF generation error: ${error.message}`, { status: 500 });
+    if (process.env.NODE_ENV === "development") {
+      console.error("PDF route error:", error.message, error.stack);
+    }
+    return new NextResponse("PDF generation failed", { status: 500 });
   }
 }

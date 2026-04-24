@@ -15,8 +15,7 @@ if (isCloudinaryConfigured) {
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
-  console.log("Cloudinary initialized successfully.");
-} else {
+} else if (process.env.NODE_ENV === "development") {
   console.warn("Cloudinary credentials missing. Falling back to local storage.");
 }
 
@@ -47,8 +46,10 @@ export async function uploadFile(file: File): Promise<string> {
       },
       (error, result) => {
         if (error) {
-          console.error("Cloudinary upload error:", error);
-          reject(new Error("Failed to upload to Cloudinary. Check your internet or credentials."));
+          if (process.env.NODE_ENV === "development") {
+            console.error("Cloudinary upload error:", error);
+          }
+          reject(new Error("Failed to upload file. Please check your credentials."));
         } else {
           resolve(result!.secure_url);
         }

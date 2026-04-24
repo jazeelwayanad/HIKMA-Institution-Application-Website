@@ -77,7 +77,9 @@ export async function submitApplication(formData: FormData, schema: any[]) {
     return { success: true, appNo: applicationNo, applicationId: application.id };
 
   } catch (err: any) {
-    console.error("Submission error:", err);
-    return { success: false, error: "An interval server error occurred saving your application." };
+    if (process.env.NODE_ENV === "development") {
+      console.error("Submission error:", err);
+    }
+    return { success: false, error: "An internal server error occurred saving your application." };
   }
 }

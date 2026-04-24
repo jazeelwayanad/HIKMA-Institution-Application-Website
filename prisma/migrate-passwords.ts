@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
-// @ts-ignore
-import * as bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 /**
  * MIGRATION SCRIPT: Migrate old SHA-256 hashed passwords to bcryptjs
@@ -11,14 +10,23 @@ import * as bcrypt from "bcryptjs";
  * WARNING: This script assumes you have access to the original plaintext
  * passwords. If you don't, admins will need to reset their passwords
  * through the "Forgot Password" flow (if implemented).
+ * 
+ * USAGE:
+ * 1. Update ADMINS_TO_MIGRATE array with your admin emails and passwords
+ * 2. Run: npx tsx prisma/migrate-passwords.ts
  */
 
-const ADMINS_TO_MIGRATE = [
-  { email: "alwardavga@gmail.com", plainPassword: "password123" },
-  // Add more as needed
+const ADMINS_TO_MIGRATE: Array<{ email: string; plainPassword: string }> = [
+  // { email: "admin@example.com", plainPassword: "old_plaintext_password" },
+  // Add your admins here and run the script
 ];
 
 async function migratePasswords() {
+  if (ADMINS_TO_MIGRATE.length === 0) {
+    console.log("No admins to migrate. Update the ADMINS_TO_MIGRATE array.");
+    return;
+  }
+
   console.log("Starting password migration...");
 
   for (const admin of ADMINS_TO_MIGRATE) {
