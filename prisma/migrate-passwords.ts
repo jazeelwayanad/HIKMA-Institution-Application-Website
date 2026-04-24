@@ -14,7 +14,7 @@ import * as bcrypt from "bcryptjs";
  */
 
 const ADMINS_TO_MIGRATE = [
-  { email: "alwardavga@gmail.com", plainPassword: "password" },
+  { email: "alwardavga@gmail.com", plainPassword: "password123" },
   // Add more as needed
 ];
 
