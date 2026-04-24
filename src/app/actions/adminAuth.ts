@@ -4,12 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { signToken, verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import crypto from "crypto";
-
-// Basic SHA-256 for rapid auth scaffolding. A real app uses bcrypt.
-function hashPassword(password: string) {
-  return crypto.createHash('sha256').update(password).digest('hex');
-}
+import bcrypt from "bcryptjs";
 
 export async function loginAdmin(formData: FormData) {
   const email = formData.get("email") as string;
@@ -17,21 +12,14 @@ export async function loginAdmin(formData: FormData) {
 
   if (!email || !password) return { success: false, error: "Missing credentials" };
 
-  // Auto-seed an admin if database is entirely empty (UX Helper)
-  const adminCount = await prisma.admin.count();
-  if (adminCount === 0 && email === "alwardavga@gmail.com" && password === "password") {
-    await prisma.admin.create({
-      data: {
-        email: "alwardavga@gmail.com",
-        password: hashPassword("password"),
-        role: "SUPER_ADMIN"
-      }
-    });
-  }
-
   const admin = await prisma.admin.findUnique({ where: { email } });
   
-  if (!admin || admin.password !== hashPassword(password)) {
+  if (!admin) {
+    return { success: false, error: "Invalid email or password." };
+  }
+
+  const isValidPassword = await bcrypt.compare(password, admin.password);
+  if (!isValidPassword) {
     return { success: false, error: "Invalid email or password." };
   }
 
@@ -64,4 +52,40 @@ export async function requireAdminRoute() {
   if (!payload || payload.adminRole !== "admin") redirect("/admin-login");
 
   return payload;
+}
+
+export async function updateAdminProfile(adminId: string, data: { email?: string; password?: string }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("admin_token")?.value;
+  if (!token) return { success: false, error: "Unauthorized" };
+
+  const payload = await verifyToken(token);
+  if (!payload || payload.sub !== adminId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const updateData: any = {};
+
+  if (data.email) {
+    const existing = await prisma.admin.findUnique({ where: { email: data.email } });
+    if (existing && existing.id !== adminId) {
+      return { success: false, error: "Email already in use" };
+    }
+    updateData.email = data.email;
+  }
+
+  if (data.password) {
+    updateData.password = await bcrypt.hash(data.password, 10);
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return { success: false, error: "No changes provided" };
+  }
+
+  await prisma.admin.update({
+    where: { id: adminId },
+    data: updateData,
+  });
+
+  return { success: true };
 }

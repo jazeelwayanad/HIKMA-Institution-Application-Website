@@ -7,9 +7,10 @@ import { revalidatePath } from "next/cache";
 import { createStatus, deleteStatus, initializeDefaultStatuses } from "@/app/actions/adminSettings";
 import { Badge } from "@/components/ui/badge";
 import { EditStatusDialog } from "./EditStatusDialog";
+import { AdminProfileForm } from "./AdminProfileForm";
 
 export default async function SettingsManager() {
-  await requireAdminRoute();
+  const admin = await requireAdminRoute();
 
   let settings = await prisma.systemSettings.findFirst();
   if (!settings) settings = await prisma.systemSettings.create({ data: {} });
@@ -18,6 +19,12 @@ export default async function SettingsManager() {
   await initializeDefaultStatuses();
   const statuses = await prisma.applicationStatus.findMany({
     orderBy: { createdAt: "asc" }
+  });
+
+  // Fetch current admin info
+  const currentAdmin = await prisma.admin.findUnique({
+    where: { id: admin.sub },
+    select: { id: true, email: true }
   });
 
   async function updateSettings(formData: FormData) {
@@ -42,9 +49,22 @@ export default async function SettingsManager() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">System Settings</h1>
-        <p className="text-slate-500 mt-1">Configure global application identifiers and status options.</p>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Settings</h1>
+        <p className="text-slate-500 mt-1">Manage admin profile, system settings, and application configurations.</p>
       </div>
+
+      {/* Admin Profile Section */}
+      {currentAdmin && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+          <div className="space-y-2 pb-6 border-b border-slate-100">
+            <h2 className="text-xl font-bold text-slate-900">Admin Profile</h2>
+            <p className="text-sm text-slate-500">Update your email and password.</p>
+          </div>
+          <div className="pt-6">
+            <AdminProfileForm adminId={currentAdmin.id} email={currentAdmin.email} />
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Identifiers Settings */}

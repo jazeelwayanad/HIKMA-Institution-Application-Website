@@ -36,7 +36,7 @@ export default async function ApplyPage() {
         </ul>
 
         {/* Client component for the interactive flow (Select Course -> Checkbox -> Next) */}
-        <ApplyFlowClient courses={courses.map(c => ({
+        <ApplyFlowClient courses={courses.map((c: typeof courses[0]) => ({
           ...c,
           deadline: c.deadline?.toISOString() ?? null
         }))} />
