@@ -1,26 +1,59 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 100% 0 0;
+    --foreground: 14.5% 0 0;
+    --card: 100% 0 0;
+    --card-foreground: 14.5% 0 0;
+    --popover: 100% 0 0;
+    --popover-foreground: 14.5% 0 0;
+    --primary: 20.5% 0 0;
+    --primary-foreground: 98.5% 0 0;
+    --secondary: 97% 0 0;
+    --secondary-foreground: 20.5% 0 0;
+    --muted: 97% 0 0;
+    --muted-foreground: 55.6% 0 0;
+    --accent: 97% 0 0;
+    --accent-foreground: 20.5% 0 0;
+    --destructive: 57.7% 0.245 27.325;
+    --destructive-foreground: 98.5% 0 0;
+    --border: 92.2% 0 0;
+    --input: 92.2% 0 0;
+    --ring: 70.8% 0 0;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 14.5% 0 0;
+    --foreground: 98.5% 0 0;
+    --card: 20.5% 0 0;
+    --card-foreground: 98.5% 0 0;
+    --popover: 20.5% 0 0;
+    --popover-foreground: 98.5% 0 0;
+    --primary: 98.5% 0 0;
+    --primary-foreground: 20.5% 0 0;
+    --secondary: 26.9% 0 0;
+    --secondary-foreground: 98.5% 0 0;
+    --muted: 26.9% 0 0;
+    --muted-foreground: 70.8% 0 0;
+    --accent: 26.9% 0 0;
+    --accent-foreground: 98.5% 0 0;
+    --destructive: 70.4% 0.191 22.216;
+    --destructive-foreground: 98.5% 0 0;
+    --border: 26.9% 0 0;
+    --input: 26.9% 0 0;
+    --ring: 55.6% 0 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

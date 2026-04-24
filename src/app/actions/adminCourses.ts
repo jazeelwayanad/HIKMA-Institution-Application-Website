@@ -1,0 +1,81 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { requireAdminRoute } from "./adminAuth";
+import { revalidatePath } from "next/cache";
+
+export async function createCourse(data: { title: string, description: string, fee: number, formTemplateId: string }) {
+  await requireAdminRoute();
+  
+  try {
+    const course = await prisma.course.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        fee: data.fee,
+        status: "DRAFT",
+        formTemplateId: data.formTemplateId || null,
+      }
+    });
+    
+    revalidatePath("/admin/courses");
+    return { success: true, courseId: course.id };
+  } catch (error) {
+    return { success: false, error: "Failed to create course." };
+  }
+}
+
+export async function updateCourseStatus(courseId: string, status: "DRAFT" | "OPEN" | "CLOSED") {
+  await requireAdminRoute();
+  
+  try {
+    await prisma.course.update({
+      where: { id: courseId },
+      data: { status }
+    });
+    revalidatePath(`/admin/courses/${courseId}`);
+    revalidatePath("/admin/courses");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to update status." };
+  }
+}
+
+export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, formTemplateId: string }) {
+  await requireAdminRoute();
+
+  try {
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        title: data.title,
+        description: data.description,
+        fee: data.fee,
+        formTemplateId: data.formTemplateId || null,
+      }
+    });
+    revalidatePath(`/admin/courses/${courseId}`);
+    revalidatePath("/admin/courses");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to update course details." };
+  }
+}
+
+export async function deleteCourse(courseId: string) {
+  await requireAdminRoute();
+
+  try {
+    const appCount = await prisma.application.count({ where: { courseId } });
+    if (appCount > 0) {
+      return { success: false, error: `Cannot delete: this course has ${appCount} existing application(s). Close it instead.` };
+    }
+
+    await prisma.course.delete({ where: { id: courseId } });
+    revalidatePath("/admin/courses");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to delete course." };
+  }
+}

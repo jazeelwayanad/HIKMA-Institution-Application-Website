@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String // Hashed
+  role      String   @default("SUPER_ADMIN")
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("DRAFT") // DRAFT, OPEN, CLOSED
+  deadline    DateTime?
+  maxSeats    Int?
+  fee         Float?    @default(0)
+
+  // Relational link to the standalone form builder template
+  formTemplateId String?
+  formTemplate   FormTemplate? @relation(fields: [formTemplateId], references: [id])
+
+  applications Application[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model FormTemplate {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  // The structure of the form created by the Form Builder
+  formSchema Json @default("[]")
+
+  // Base PDF form template uploaded by admin
+  pdfTemplateUrl String?
+
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Application {
+  id            String @id @default(cuid())
+  applicationNo String @unique // Auto-generated (e.g. APP-1001)
+  status        String @default("PENDING") // PENDING, APPROVED, REJECTED, or custom values
+
+  // Fields for auth to check status
+  dob DateTime
+
+  // Dynamically filled content according to Course's formSchema
+  data Json
+
+  // Relations
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  isEditable Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Soft delete flag recommended in the specs
+  deletedAt DateTime?
+}
+
+model ApplicationStatus {
+  id          String   @id @default(cuid())
+  label       String   @unique // e.g. "Interview Scheduled"
+  value       String   @unique // e.g. "INTERVIEW_SCHEDULED"
+  description String?  // Optional description for client side
+  color       String   @default("indigo") // tailwind color prefix: indigo, amber, emerald, etc.
+  createdAt   DateTime @default(now())
+}
+
+model SystemSettings {
+  id                    Int      @id @default(1)
+  appNumberPrefix       String   @default("APP-")
+  currentAppCounter     Int      @default(1000)
+  globalEditSubmissions Boolean  @default(false)
+  fileUploadSizeLimitMB Int      @default(5)
+  updatedAt             DateTime @updatedAt
+}
