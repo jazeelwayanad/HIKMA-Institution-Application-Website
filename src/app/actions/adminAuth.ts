@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { signToken, verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+// @ts-ignore
 import * as bcrypt from "bcryptjs";
 
 export async function loginAdmin(formData: FormData) {
