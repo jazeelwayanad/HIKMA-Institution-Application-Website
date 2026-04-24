@@ -74,7 +74,7 @@ export function InlineStatusDropdown({
           Change Status
         </div>
         <DropdownMenuSeparator className="my-1" />
-        {allStatuses.map(s => (
+        {allStatuses.map((s: typeof allStatuses[0]) => (
           <DropdownMenuItem
             key={s.value}
             onClick={() => handleChange(s)}

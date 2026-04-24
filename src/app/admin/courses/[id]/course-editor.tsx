@@ -89,7 +89,7 @@ export function CourseEditorClient({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none" className="text-slate-500 italic">No Form Attached (Registration Disabled)</SelectItem>
-              {availableForms.map(f => (
+              {availableForms.map((f: typeof availableForms[0]) => (
                 <SelectItem key={f.id} value={f.id} className="font-medium">
                   {f.name || "Untitled Form template"}
                 </SelectItem>

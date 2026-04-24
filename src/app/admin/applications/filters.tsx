@@ -73,13 +73,13 @@ export function ApplicationsFilters({
 
   const toggleCourse = (courseId: string) => {
     setSelected(prev => 
-      prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]
+      prev.includes(courseId) ? prev.filter((id: string) => id !== courseId) : [...prev, courseId]
     );
   };
 
   const toggleStatus = (statusValue: string) => {
     setSelectedStatusArr(prev => 
-      prev.includes(statusValue) ? prev.filter(val => val !== statusValue) : [...prev, statusValue]
+      prev.includes(statusValue) ? prev.filter((val: string) => val !== statusValue) : [...prev, statusValue]
     );
   };
 
@@ -122,7 +122,7 @@ export function ApplicationsFilters({
                Filter by Program
              </div>
              <DropdownMenuSeparator className="my-1" />
-             {courses.map(course => (
+             {courses.map((course: typeof courses[0]) => (
                <DropdownMenuCheckboxItem
                  key={course.id}
                  checked={selected.includes(course.id)}
@@ -150,7 +150,7 @@ export function ApplicationsFilters({
                Filter by Status
              </div>
              <DropdownMenuSeparator className="my-1" />
-             {statuses.map(s => (
+             {statuses.map((s: typeof statuses[0]) => (
                <DropdownMenuCheckboxItem
                  key={s.value}
                  checked={selectedStatusArr.includes(s.value)}

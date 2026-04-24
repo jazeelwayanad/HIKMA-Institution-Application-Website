@@ -45,7 +45,7 @@ export function AdminSidebar() {
 
       {/* Nav Links */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navLinks.map(link => {
+        {navLinks.map((link: typeof navLinks[0]) => {
           const isActive = link.exact
             ? pathname === link.href
             : pathname.startsWith(link.href);

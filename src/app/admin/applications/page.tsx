@@ -62,12 +62,12 @@ export default async function ApplicationsManager({ searchParams }: { searchPara
           selectedCourses={coursesFilter || []} 
           courses={allCourses} 
           selectedStatuses={statusesFilter || []}
-          statuses={availableStatuses.map(s => ({ value: s.value, label: s.label }))}
+          statuses={availableStatuses.map((s: typeof availableStatuses[0]) => ({ value: s.value, label: s.label }))}
         />
 
         <ApplicationsTableClient 
           applications={applications} 
-          availableStatuses={availableStatuses.map(s => ({ id: s.id, label: s.label, value: s.value, color: s.color }))} 
+          availableStatuses={availableStatuses.map((s: typeof availableStatuses[0]) => ({ id: s.id, label: s.label, value: s.value, color: s.color }))} 
         />
         <ApplicationsPagination 
           currentPage={page} 

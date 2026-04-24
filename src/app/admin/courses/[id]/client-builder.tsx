@@ -114,7 +114,7 @@ function SortableFieldCard({
     opacity: isDragging ? 0.8 : 1,
   };
 
-  const fieldTypeMeta = FIELD_TYPES.find(t => t.value === field.type);
+  const fieldTypeMeta = FIELD_TYPES.find((t: typeof FIELD_TYPES[0]) => t.value === field.type);
   const IconComponent = fieldTypeMeta?.icon || Type;
 
   return (
@@ -172,7 +172,7 @@ function SortableFieldCard({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {FIELD_TYPES.map(t => {
+                        {FIELD_TYPES.map((t: typeof FIELD_TYPES[0]) => {
                           const TIcon = t.icon;
                           return (
                             <SelectItem key={t.value} value={t.value}>
@@ -225,7 +225,7 @@ function SortableFieldCard({
                 <div className="space-y-2">
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Options</Label>
                   <div className="space-y-2">
-                    {(field.options ?? []).map((opt, i) => (
+                    {(field.options ?? []).map((opt: string, i: number) => (
                       <div key={i} className="flex items-center gap-2">
                         <span className="text-slate-300 text-sm w-5">
                           {field.type === "radio" ? "○" : `${i + 1}.`}
@@ -256,7 +256,7 @@ function SortableFieldCard({
                 <div className="space-y-3">
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Allowed File Types</Label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {FILE_TYPES.map(ft => {
+                    {FILE_TYPES.map((ft: typeof FILE_TYPES[0]) => {
                       const checked = (field.allowedFileTypes ?? []).includes(ft.accept);
                       const isAny = ft.accept === "*";
                       const hasAny = (field.allowedFileTypes ?? []).includes("*");
@@ -445,21 +445,21 @@ export function FormBuilderClient({
     setActiveFieldId(newId);
   };
 
-  const removeField = (id: string) => {
-    setFields(prev => prev.filter(f => f.id !== id || f.isProtected));
-    setActiveFieldId(null);
-  };
+   const removeField = (id: string) => {
+     setFields(prev => prev.filter((f: typeof fields[0]) => f.id !== id || f.isProtected));
+     setActiveFieldId(null);
+   };
 
   const updateField = (id: string, updates: Partial<SchemaField>) => {
-    setFields(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
+    setFields(prev => prev.map((f: typeof fields[0]) => f.id === id ? { ...f, ...updates } : f));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setFields((items) => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
+      setFields((items: typeof fields) => {
+        const oldIndex = items.findIndex((item: typeof fields[0]) => item.id === active.id);
+        const newIndex = items.findIndex((item: typeof fields[0]) => item.id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
     }
@@ -631,9 +631,9 @@ export function FormBuilderClient({
 
           {/* DND Field List */}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={fields.map((f: typeof fields[0]) => f.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-3">
-                {fields.map((field, index) => (
+                {fields.map((field: typeof fields[0], index: number) => (
                   <SortableFieldCard
                     key={field.id}
                     field={field}

@@ -58,7 +58,7 @@ export default async function AdminFormsPage() {
           </form>
         </div>
 
-        {forms.map(form => (
+        {forms.map((form: typeof forms[0]) => (
           <Link href={`/admin/forms/${form.id}`} key={form.id}>
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all h-full flex flex-col group cursor-pointer">
               <div className="flex items-start justify-between mb-4">

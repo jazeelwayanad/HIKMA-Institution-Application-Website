@@ -125,7 +125,7 @@ export default async function SettingsManager() {
            </div>
 
            <div className="py-6 flex flex-wrap gap-3">
-              {statuses.map(s => (
+              {statuses.map((s: typeof statuses[0]) => (
                 <EditStatusDialog key={s.id} status={s} />
               ))}
            </div>

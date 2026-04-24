@@ -20,7 +20,7 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
     orderBy: { createdAt: "asc" }
   });
   
-  const statusMeta = statuses.find(s => s.value === application.status);
+  const statusMeta = statuses.find((s: typeof statuses[0]) => s.value === application.status);
   const formData = application.data as Record<string, any>;
 
   return (
@@ -51,7 +51,7 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
         <ApplicationsClientAction 
           applicationId={application.id} 
           currentStatus={application.status} 
-          allStatuses={statuses.map(s => ({ label: s.label, value: s.value }))}
+          allStatuses={statuses.map((s: typeof statuses[0]) => ({ label: s.label, value: s.value }))}
         />
       </div>
 
@@ -82,7 +82,7 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
 
                 return (
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {Object.entries(formData).map(([key, value]) => {
+                    {Object.entries(formData).map(([key, value]: [string, any]) => {
                       const label = labelMap[key] ?? key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
                       const lowerKey = key.toLowerCase();
                       const isUrl = typeof value === 'string' && (value.startsWith('/uploads/') || (value as string).includes('http'));

@@ -65,7 +65,7 @@ export function DynamicFormClient({ courseId, schema }: { courseId: string; sche
 
       {/* ── Dynamic Fields ── */}
       <div className="space-y-7">
-        {schema.map((field) => {
+        {schema.map((field: typeof schema[0]) => {
           const isWide = field.type === "file" || field.type === "textarea";
           const acceptAttr = field.allowedFileTypes?.join(",") || "*";
 
@@ -174,7 +174,7 @@ export function DynamicFormClient({ courseId, schema }: { courseId: string; sche
                   className="flex h-10 w-full max-w-lg rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
                 >
                   <option value="" disabled>Select an option…</option>
-                  {field.options.map(opt => (
+                  {field.options.map((opt: string) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
@@ -183,7 +183,7 @@ export function DynamicFormClient({ courseId, schema }: { courseId: string; sche
               {/* Radio / Multiple choice */}
               {field.type === "radio" && field.options && (
                 <div className="space-y-2 mt-1">
-                  {field.options.map(opt => (
+                  {field.options.map((opt: string) => (
                     <label key={opt} className="flex items-center gap-3 cursor-pointer group">
                       <input
                         type="radio"

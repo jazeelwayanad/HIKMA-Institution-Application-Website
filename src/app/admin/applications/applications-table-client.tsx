@@ -30,13 +30,13 @@ export function ApplicationsTableClient({
     if (selectedIds.length === applications.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(applications.map(app => app.id));
+      setSelectedIds(applications.map((app: typeof applications[0]) => app.id));
     }
   };
 
   const toggleOne = (id: string) => {
     setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x: string) => x !== id) : [...prev, id]
     );
   };
 
@@ -83,8 +83,8 @@ export function ApplicationsTableClient({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {applications.map(app => {
-            const statusMeta = availableStatuses.find(s => s.value === app.status);
+          {applications.map((app: typeof applications[0]) => {
+            const statusMeta = availableStatuses.find((s: typeof availableStatuses[0]) => s.value === app.status);
             const isSelected = selectedIds.includes(app.id);
             
             // Extract applicant name flexibly
@@ -120,7 +120,7 @@ export function ApplicationsTableClient({
                     applicationId={app.id}
                     currentStatus={app.status}
                     statusMeta={statusMeta}
-                    allStatuses={availableStatuses.map(s => ({ label: s.label, value: s.value, color: s.color }))}
+                    allStatuses={availableStatuses.map((s: typeof availableStatuses[0]) => ({ label: s.label, value: s.value, color: s.color }))}
                   />
                 </td>
                 <td className="px-6 py-4 align-middle text-right">
@@ -158,7 +158,7 @@ export function ApplicationsTableClient({
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 py-1.5">
                   Set Status to...
                 </div>
-                {availableStatuses.map(status => {
+                {availableStatuses.map((status: typeof availableStatuses[0]) => {
                   const colorClasses = 
                     status.color === 'emerald' ? 'text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700' :
                     status.color === 'amber' ? 'text-amber-600 focus:bg-amber-50 focus:text-amber-700' :

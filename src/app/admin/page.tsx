@@ -134,7 +134,7 @@ export default async function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {recentSubmissions.map(app => (
+                    {recentSubmissions.map((app: typeof recentSubmissions[0]) => (
                       <tr key={app.id} className="hover:bg-slate-50/80 transition-colors group">
                         <td className="px-6 py-5">
                           <Link href={`/admin/applications?search=${app.applicationNo}`} className="font-mono font-bold text-indigo-600 group-hover:text-indigo-800 group-hover:underline">
