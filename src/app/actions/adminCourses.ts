@@ -41,7 +41,7 @@ export async function updateCourseStatus(courseId: string, status: "DRAFT" | "OP
   }
 }
 
-export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, formTemplateId?: string | null }) {
+export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, formTemplateId?: string | null, status?: string }) {
   await requireAdminRoute();
 
   try {
@@ -52,6 +52,7 @@ export async function updateCourseDetails(courseId: string, data: { title: strin
         description: data.description,
         fee: data.fee,
         formTemplateId: data.formTemplateId || null,
+        ...(data.status && { status: data.status })
       }
     });
     revalidatePath(`/admin/courses/${courseId}`);

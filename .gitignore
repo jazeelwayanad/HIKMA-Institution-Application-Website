@@ -51,3 +51,4 @@ seed.ts
 prisma/migrate-passwords.ts
 .vercel
 .env*.local
+DEPLOY_DROPLET.md

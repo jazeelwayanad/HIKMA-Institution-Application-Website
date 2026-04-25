@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deleteCourse, createCourse } from "@/app/actions/adminCourses";
+import { CourseStatusSelector } from "./course-status-selector";
 import { redirect } from "next/navigation";
 import { Eye, Trash2, ExternalLink } from "lucide-react";
 
@@ -57,9 +58,7 @@ export default async function CoursesManager() {
                       </Link>
                     </td>
                    <td className="px-6 py-4">
-                     {course.status === 'OPEN' && <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none">Open</Badge>}
-                     {course.status === 'DRAFT' && <Badge variant="outline" className="text-slate-500 border-slate-300">Draft</Badge>}
-                     {course.status === 'CLOSED' && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Closed</Badge>}
+                     <CourseStatusSelector courseId={course.id} initialStatus={course.status} />
                    </td>
                    {/* <td className="px-6 py-4 text-slate-500">{course.fee && course.fee > 0 ? `$${course.fee}` : "Free"}</td> */}
                    <td className="px-6 py-4 text-slate-500">
