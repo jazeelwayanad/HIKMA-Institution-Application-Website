@@ -110,7 +110,7 @@ export function CourseEditorClient({
            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
            Course Status
          </Label>
-         <Select value={status} onValueChange={setStatus}>
+         <Select value={status} onValueChange={(val) => setStatus(val || "DRAFT")}>
             <SelectTrigger className="w-full bg-slate-50 border-slate-200 h-11 px-4 text-slate-700">
                <SelectValue placeholder="Select course status...">
                  {status === "DRAFT" ? "Draft (Hidden)" : status === "OPEN" ? "Open (Accepting Applications)" : "Closed (Not Accepting Applications)"}

@@ -9,7 +9,8 @@ export function CourseStatusSelector({ courseId, initialStatus }: { courseId: st
   const [status, setStatus] = useState(initialStatus);
   const [loading, setLoading] = useState(false);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string | null) => {
+    if (!newStatus) return;
     setStatus(newStatus);
     setLoading(true);
     await updateCourseStatus(courseId, newStatus as any);
