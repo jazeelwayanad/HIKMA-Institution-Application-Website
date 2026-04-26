@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,10 +19,45 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
   availableCourses?: { id: string; title: string }[]
 }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photo || null);
   const [activeCourseId, setActiveCourseId] = useState(courseId);
+  const [reviewData, setReviewData] = useState<Record<string, string> | null>(null);
+
+  const fieldLabels: Record<string, string> = {
+    full_name: "Full Name", dob: "Date of Birth", father_name: "Name of Father",
+    mother_name: "Name of Mother", mother_mobile: "Mobile (Mother)",
+    guardian_name: "Guardian Name", guardian_relation: "Guardian Relation",
+    guardian_mobile: "Guardian Mobile", house_name: "House Name",
+    place: "Place", post_office: "Post Office", district: "District",
+    whatsapp_number: "WhatsApp Number", marital_status: "Marital Status",
+    madrasa_qualification: "Madrasa Qualification", last_school_name: "Last School",
+    sslc_hse_reg_number: "SSLC/HSE Reg. No.", course_selected: "Course Selected",
+    remarks: "Remarks",
+  };
+
+  const sections = [
+    { title: "Personal Information", keys: ["full_name","dob","father_name","mother_name","mother_mobile","marital_status"] },
+    { title: "Contact & Address", keys: ["guardian_name","guardian_relation","guardian_mobile","house_name","place","post_office","district","whatsapp_number"] },
+    { title: "Academic Background", keys: ["madrasa_qualification","last_school_name","sslc_hse_reg_number","course_selected","remarks"] },
+  ];
+
+  function handleReviewClick() {
+    if (!formRef.current) return;
+    if (!formRef.current.reportValidity()) return;
+    const fd = new FormData(formRef.current);
+    const data: Record<string, string> = {};
+    fd.forEach((v, k) => { if (typeof v === "string" && k !== "editId" && k !== "declaration_agreed") data[k] = v; });
+    if (!isAdmin) data["course_selected"] = courseTitle || "";
+    else if (availableCourses) {
+      const c = availableCourses.find(x => x.id === activeCourseId);
+      data["course_selected"] = c?.title || "";
+    }
+    setReviewData(data);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -51,16 +86,75 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
         router.push(`/admin/applications/${editId}`);
         router.refresh();
       } else {
-        router.push(`/apply/success?appNo=${result.appNo}&appId=${result.applicationId}`);
+        const mode = (!isAdmin && editId) ? "&mode=edit" : "";
+        router.push(`/apply/success?appNo=${result.appNo}&appId=${result.applicationId}${mode}`);
       }
     } else {
       setErrorDetails(result.error || "An unexpected error occurred.");
       setIsSubmitting(false);
+      setReviewData(null);
     }
   }
 
+  const formatValue = (key: string, val: string) => {
+    if (!val) return <span className="text-slate-400 italic">—</span>;
+    if (key === "dob") {
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? val : d.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+    }
+    return val;
+  };
+
   return (
-    <form onSubmit={onSubmit} className="bg-white">
+    <>
+    {reviewData && (
+      <div className="bg-white">
+        <div className="bg-[#DAB31B] text-slate-900 font-bold text-center py-2 text-lg border-y-2 border-white shadow-sm mb-6 mx-4 mt-4 rounded-md">
+          REVIEW YOUR APPLICATION
+        </div>
+        <div className="px-6 md:px-12 pb-8 space-y-6">
+          <div className="flex items-center gap-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+            {photoPreview ? (
+              <img src={photoPreview} alt="Photo" className="w-20 h-24 object-cover rounded-lg border-2 border-indigo-200 shadow" />
+            ) : (
+              <div className="w-20 h-24 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-400 text-xs">No Photo</div>
+            )}
+            <div>
+              <p className="text-xl font-bold text-slate-900">{reviewData.full_name || "—"}</p>
+              <p className="text-sm text-indigo-600 font-medium mt-1">{reviewData.course_selected || ""}</p>
+              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
+                <CheckCircle className="w-3.5 h-3.5" /> Ready to Submit
+              </div>
+            </div>
+          </div>
+          {sections.map(sec => (
+            <div key={sec.title}>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100">{sec.title}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                {sec.keys.map(k => (
+                  <div key={k} className="flex flex-col gap-0.5">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">{fieldLabels[k] || k}</span>
+                    <span className="text-sm font-medium text-slate-800">{formatValue(k, reviewData[k] || "")}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {errorDetails && (
+            <div className="p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200">{errorDetails}</div>
+          )}
+          <div className="pt-4 flex flex-col md:flex-row justify-end items-center gap-3 border-t border-slate-100">
+            <Button type="button" variant="outline" onClick={() => setReviewData(null)} disabled={isSubmitting} className="w-full md:w-auto h-11 px-8 gap-2">
+              <Pencil className="w-4 h-4" /> Edit
+            </Button>
+            <Button type="button" disabled={isSubmitting} onClick={() => formRef.current?.requestSubmit()} className="bg-[#2B4B8A] hover:bg-[#1E3A70] text-white rounded-md px-10 h-11 text-base font-semibold w-full md:w-auto">
+              {isSubmitting ? (isAdmin ? "Saving…" : "Submitting…") : (isAdmin ? "Confirm & Save Changes" : "Confirm & Submit")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+    <form ref={formRef} onSubmit={onSubmit} className={`bg-white${reviewData ? " hidden" : ""}`}>
       {editId && <input type="hidden" name="editId" value={editId} />}
       
       {/* Back to Dashboard — student only */}
@@ -302,15 +396,17 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
             Cancel
           </Button>
           <Button
-            type="submit"
+            type="button"
+            onClick={handleReviewClick}
             disabled={isSubmitting}
             className="bg-[#2B4B8A] hover:bg-[#1E3A70] text-white rounded-md px-10 h-11 text-base font-semibold w-full md:w-auto"
           >
-            {isSubmitting ? (isAdmin ? "Saving…" : "Submitting…") : (isAdmin ? "Save Changes" : "Submit Application")}
+            {isAdmin ? "Review & Save" : "Review Application"}
           </Button>
         </div>
       </div>
     </form>
+    </>
   );
 }
 

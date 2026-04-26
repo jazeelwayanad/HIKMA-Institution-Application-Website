@@ -53,6 +53,9 @@ export default function StatusLoginPage() {
               required 
               className="bg-white/50 border-slate-200 focus:border-indigo-500 font-medium tracking-wide"
             />
+            <p className="text-[10px] text-slate-400 italic">
+              Note: Use any mobile number registered in your application (WhatsApp, Mother, or Guardian).
+            </p>
           </div>
 
           <div className="space-y-2">

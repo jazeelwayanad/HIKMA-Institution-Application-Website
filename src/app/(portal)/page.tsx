@@ -5,9 +5,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center justify-center px-4 py-20">
       {/* Header Section */}
-      <div className="text-center mb-16 max-w-2xl">
+      <div className="text-center mb-16 max-w-6xl">
         <h1 className="text-6xl md:text-7xl font-medium tracking-tight text-slate-900 mb-6">
-          Admissions <span className="font-bold text-black">2026</span>
+          Al-warda Women's College <br /><span className="font-bold text-black"> 2026-27 Admission</span>
         </h1>
         <p className="text-slate-500 text-lg md:text-xl leading-relaxed">
           Welcome to the official online application portal. Start your journey or check your current application status.
@@ -44,7 +44,7 @@ export default function Home() {
           
           <h2 className="text-3xl font-bold text-slate-900 mb-4">Check Status</h2>
           <p className="text-slate-500 text-lg leading-relaxed mb-10 flex-grow">
-            Already applied? Log in with your application number and date of birth to track your progress.
+            Already applied? Log in with your mobile number and date of birth to track your progress.
           </p>
           
           <Link 

@@ -9,12 +9,11 @@ export default function PortalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isHomePage = pathname === "/";
   const isDashboard = pathname === "/status/dashboard";
 
   return (
     <>
-      {!isHomePage && !isDashboard && <Navbar />}
+      {!isDashboard && <Navbar />}
       <main className="flex-1 shrink-0">
         {children}
       </main>

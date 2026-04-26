@@ -29,10 +29,14 @@ export default async function ApplyPage() {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
         <h2 className="text-xl font-bold text-slate-800 mb-4">Instructions for Applicants</h2>
         <ul className="list-disc pl-5 space-y-2 text-slate-600 mb-8">
-          <li>Ensure you have all necessary documents (ID, Transcripts, Photo) ready before starting.</li>
-          <li>All applications are final upon submission. You will receive an Application Number to track your status.</li>
-          <li>The application fee must be paid during the process if applicable.</li>
-          <li>Make sure to apply before the deadline noted on your specific course.</li>
+          <li>Keep required documents ready: SSLC Certificate, Plus Two Certificate, Transfer Certificate, ID proof, and recent photo.</li>
+          <li>Fill all details accurately as per official records.</li>
+          <li>Select your program carefully; changes may not be allowed after submission.</li>
+          <li>Pay the application fee (if applicable). Fees are non-refundable.</li>
+          <li>Review your form before submitting.</li>
+          <li>After submission, note your Application Number.</li>
+          <li><b>Note your Registered Mobile Number and DOB to check status of your application.</b></li>
+          <li>Agree to the declaration confirming all information is true.</li>
         </ul>
 
         {/* Client component for the interactive flow (Select Course -> Checkbox -> Next) */}
