@@ -24,29 +24,18 @@ model Course {
   fee         Float?    @default(0)
 
   // Relational link to the standalone form builder template
-  formTemplateId String?
-  formTemplate   FormTemplate? @relation(fields: [formTemplateId], references: [id])
+  // REMOVED: formTemplateId String?
+  // REMOVED: formTemplate   FormTemplate? @relation(fields: [formTemplateId], references: [id])
 
   applications Application[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  
+  appNumberPrefix   String @default("APP-")
+  currentAppCounter Int    @default(1000)
 }
 
-model FormTemplate {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
 
-  // The structure of the form created by the Form Builder
-  formSchema Json @default("[]")
-
-  // Base PDF form template uploaded by admin
-  pdfTemplateUrl String?
-
-  courses   Course[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 model Application {
   id            String @id @default(cuid())
@@ -83,8 +72,6 @@ model ApplicationStatus {
 
 model SystemSettings {
   id                    Int      @id @default(1)
-  appNumberPrefix       String   @default("APP-")
-  currentAppCounter     Int      @default(1000)
   globalEditSubmissions Boolean  @default(false)
   fileUploadSizeLimitMB Int      @default(5)
   updatedAt             DateTime @updatedAt

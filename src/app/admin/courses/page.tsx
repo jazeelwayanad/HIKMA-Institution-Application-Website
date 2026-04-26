@@ -26,7 +26,7 @@ export default async function CoursesManager() {
         </div>
         <form action={async () => {
           "use server";
-          const res = await createCourse({ title: "New Program Draft", description: "", fee: 0, formTemplateId: "" });
+          const res = await createCourse({ title: "New Program Draft", description: "", fee: 0 });
           if(res.success) {
             redirect(`/admin/courses/${res.courseId}`);
           }

@@ -5,13 +5,14 @@ import { Users, FileText, CheckCircle, GraduationCap, ArrowUpRight, TrendingUp, 
 export default async function AdminDashboard() {
   // Aggregate Stats
   const [totalApps, pendingApps, totalCourses, openCourses] = await Promise.all([
-    prisma.application.count(),
-    prisma.application.count({ where: { status: "PENDING" } }),
+    prisma.application.count({ where: { deletedAt: null } }),
+    prisma.application.count({ where: { status: "PENDING", deletedAt: null } }),
     prisma.course.count(),
     prisma.course.count({ where: { status: "OPEN" } })
   ]);
 
   const recentSubmissions = await prisma.application.findMany({
+    where: { deletedAt: null },
     take: 5,
     orderBy: { createdAt: "desc" },
     include: { course: true }

@@ -10,49 +10,60 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { getBadgeStyles, getDotStyles } from "@/lib/colorUtils";
 
 type StatusMeta = { label: string; value: string; color: string } | undefined;
 
-const colorClasses = {
-  amber:   { badge: "bg-amber-50 text-amber-700 border-amber-200",   dot: "bg-amber-400" },
-  emerald: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-  red:     { badge: "bg-red-50 text-red-700 border-red-200",         dot: "bg-red-400" },
-  rose:    { badge: "bg-rose-50 text-rose-700 border-rose-200",       dot: "bg-rose-400" },
-  slate:   { badge: "bg-slate-100 text-slate-700 border-slate-200",  dot: "bg-slate-400" },
-  indigo:  { badge: "bg-indigo-50 text-indigo-700 border-indigo-200", dot: "bg-indigo-400" },
-};
-
-function getBadgeClass(color: string) {
-  return (colorClasses as any)[color]?.badge ?? colorClasses.indigo.badge;
-}
-function getDotClass(color: string) {
-  return (colorClasses as any)[color]?.dot ?? colorClasses.indigo.dot;
-}
+// Removed legacy color classes in favor of dynamic hex styles
 
 export function InlineStatusDropdown({
   applicationId,
   currentStatus,
   statusMeta,
   allStatuses,
+  className,
 }: {
   applicationId: string;
   currentStatus: string;
   statusMeta: StatusMeta;
   allStatuses: { label: string; value: string; color: string }[];
+  className?: string;
 }) {
   const [optimisticStatus, setOptimisticStatus] = useState<StatusMeta>(statusMeta);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<typeof allStatuses[0] | null>(null);
+  const [note, setNote] = useState("");
 
   // Sync state if it gets changed from the outside (like from Bulk Actions)
   useEffect(() => {
     setOptimisticStatus(statusMeta);
   }, [statusMeta]);
 
-  const handleChange = async (status: { label: string; value: string; color: string }) => {
-    setOptimisticStatus(status);
+  const handleSelectStatus = (status: { label: string; value: string; color: string }) => {
+    setPendingStatus(status);
+    setNote(""); // Clear previous note
+    setDialogOpen(true);
+  };
+
+  const handleConfirmChange = async () => {
+    if (!pendingStatus) return;
+    setOptimisticStatus(pendingStatus);
     setIsUpdating(true);
-    await updateApplicationStatus(applicationId, status.value);
+    setDialogOpen(false);
+    await updateApplicationStatus(applicationId, pendingStatus.value, note);
     setIsUpdating(false);
+    setPendingStatus(null);
   };
 
   const displayed = optimisticStatus ?? { label: currentStatus, value: currentStatus, color: "indigo" };
@@ -61,10 +72,10 @@ export function InlineStatusDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger
         disabled={isUpdating}
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 text-xs font-bold transition-all outline-none cursor-pointer hover:opacity-80 disabled:opacity-60
-          ${getBadgeClass(displayed.color)}`}
+        className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full border-2 text-xs font-bold transition-all outline-none cursor-pointer hover:opacity-80 disabled:opacity-60 ${className || ''}`}
+        style={getBadgeStyles(displayed.color)}
       >
-        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getDotClass(displayed.color)}`} />
+        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={getDotStyles(displayed.color)} />
         {displayed.label}
         <ChevronDown className="w-3 h-3 ml-0.5 opacity-60" />
       </DropdownMenuTrigger>
@@ -77,11 +88,11 @@ export function InlineStatusDropdown({
         {allStatuses.map((s: typeof allStatuses[0]) => (
           <DropdownMenuItem
             key={s.value}
-            onClick={() => handleChange(s)}
+            onClick={() => handleSelectStatus(s)}
             className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer"
             disabled={s.value === displayed.value}
           >
-            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${getDotClass(s.color)}`} />
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={getDotStyles(s.color)} />
             <span className="flex-1 text-sm">{s.label}</span>
             {s.value === displayed.value && (
               <Check className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
@@ -89,6 +100,34 @@ export function InlineStatusDropdown({
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Update Status</DialogTitle>
+            <DialogDescription>
+              Change status to <strong>{pendingStatus?.label}</strong>. You can optionally leave a note for the applicant.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              id="note"
+              placeholder="Type your note here..."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="col-span-3 min-h-[100px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isUpdating}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmChange} disabled={isUpdating} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              {isUpdating ? "Saving..." : "Confirm Change"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DropdownMenu>
   );
 }

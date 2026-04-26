@@ -5,12 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { updateStatus, deleteStatus } from "@/app/actions/adminSettings";
 import { ApplicationStatus } from "@prisma/client";
+import { getBadgeStyles, getHexColor } from "@/lib/colorUtils";
 
 export function EditStatusDialog({ status }: { status: ApplicationStatus }) {
   const [open, setOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const isCore = ['PENDING', 'APPROVED', 'REJECTED'].includes(status.value);
 
@@ -25,10 +38,11 @@ export function EditStatusDialog({ status }: { status: ApplicationStatus }) {
   }
 
   async function handleDelete() {
-    if (confirm("Are you sure you want to delete this status?")) {
-      await deleteStatus(status.id);
-      setOpen(false);
-    }
+    setLoading(true);
+    await deleteStatus(status.id);
+    setLoading(false);
+    setDeleteDialogOpen(false);
+    setOpen(false);
   }
 
   return (
@@ -36,11 +50,8 @@ export function EditStatusDialog({ status }: { status: ApplicationStatus }) {
       <DialogTrigger>
         <Badge 
           variant="outline" 
-          className={`px-4 py-1.5 text-sm font-medium border-2 rounded-full transition-colors hover:opacity-80 cursor-pointer
-            ${status.color === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-              status.color === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-              status.color === 'red' ? 'bg-red-50 text-red-700 border-red-200' : 
-              'bg-indigo-50 text-indigo-700 border-indigo-200'}`}
+          className="px-4 py-1.5 text-sm font-medium border-2 rounded-full transition-colors hover:opacity-80 cursor-pointer"
+          style={getBadgeStyles(status.color)}
         >
           {status.label}
         </Badge>
@@ -57,13 +68,10 @@ export function EditStatusDialog({ status }: { status: ApplicationStatus }) {
             </div>
             <div className="space-y-2">
               <Label className="text-slate-600 text-xs font-semibold">Color Theme</Label>
-              <select name="color" defaultValue={status.color} className="w-full h-10 border border-slate-200 rounded-md bg-white text-sm px-2 focus:ring-1 focus:ring-slate-900 outline-none">
-                <option value="indigo">Indigo</option>
-                <option value="amber">Amber</option>
-                <option value="rose">Rose</option>
-                <option value="emerald">Emerald</option>
-                <option value="slate">Slate</option>
-              </select>
+              <div className="flex items-center gap-2">
+                <Input type="color" name="color" defaultValue={getHexColor(status.color)} className="w-12 h-10 p-1 cursor-pointer" />
+                <span className="text-xs text-slate-500">Pick a color</span>
+              </div>
             </div>
             <div className="space-y-2">
               <Label className="text-slate-600 text-xs font-semibold">Client-facing Description</Label>
@@ -72,7 +80,21 @@ export function EditStatusDialog({ status }: { status: ApplicationStatus }) {
           </div>
           <div className="flex justify-between pt-4 gap-2">
             {!isCore ? (
-              <Button type="button" variant="destructive" onClick={handleDelete} className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700">Delete</Button>
+              <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogTrigger className="inline-flex items-center justify-center gap-1.5 rounded-md text-sm font-medium border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 px-4 py-2 transition-colors">Delete</AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to delete this status?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This status will be permanently removed.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete Status</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             ) : (
               <div /> // Core status spacer
             )}

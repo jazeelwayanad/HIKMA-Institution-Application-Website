@@ -9,19 +9,24 @@ export async function loginStudent(mobile: string, dobString: string) {
   try {
     const dob = new Date(dobString);
 
-    // We are searching for an application where the "mobile_number" in JSON matches the given mobile
+    // We are searching for an application where any mobile number field matches the given mobile
     // and the DOB matches exactly. Using Prisma's powerful JSON filtering for PG.
     const application = await prisma.application.findFirst({
       where: {
-        data: {
-          path: ['mobile_number'],
-          equals: mobile
-        },
+        OR: [
+          { data: { path: ['whatsapp_number'], equals: mobile } },
+          { data: { path: ['mother_mobile'], equals: mobile } },
+          { data: { path: ['guardian_mobile'], equals: mobile } },
+          { data: { path: ['mobile_number'], equals: mobile } } // For backwards compatibility with older forms
+        ],
         // In JS, dates are tricky. We want to match exactly if we assume they are stored correctly, 
         // but to be safe, finding by exact Date object usually works for DATE type columns in Postgres.
         dob: {
           equals: dob
         }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
 

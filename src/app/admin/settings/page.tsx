@@ -29,16 +29,12 @@ export default async function SettingsManager() {
 
   async function updateSettings(formData: FormData) {
     "use server";
-    const appNumberPrefix = formData.get("appNumberPrefix") as string;
-    const currentAppCounter = parseInt(formData.get("currentAppCounter") as string, 10);
     const idStr = formData.get("id") as string;
     const globalEditSubmissions = formData.get("globalEditSubmissions") === "on";
 
     await prisma.systemSettings.update({
       where: { id: parseInt(idStr, 10) },
       data: {
-        appNumberPrefix,
-        currentAppCounter: isNaN(currentAppCounter) ? undefined : currentAppCounter,
         globalEditSubmissions,
       }
     });
@@ -73,24 +69,10 @@ export default async function SettingsManager() {
               <input type="hidden" name="id" value={settings.id} />
               
               <div className="space-y-2 pb-6">
-                 <h2 className="text-xl font-bold text-slate-900">Application Numbering</h2>
-                 <p className="text-sm text-slate-500 mb-4">Control the prefix and sequence for new applications.</p>
+                 <h2 className="text-xl font-bold text-slate-900">Application Settings</h2>
+                 <p className="text-sm text-slate-500 mb-4">Control global behaviors for the application portal.</p>
                  
-                 <div className="grid grid-cols-2 gap-6 pt-2">
-                    <div className="space-y-2">
-                      <Label className="text-slate-700 font-semibold">Application Prefix</Label>
-                      <Input name="appNumberPrefix" defaultValue={settings.appNumberPrefix} className="h-11" />
-                      <p className="text-xs text-slate-400">E.g., APP- or 2026-</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-slate-700 font-semibold">Next ID Value</Label>
-                      <Input name="currentAppCounter" type="number" defaultValue={settings.currentAppCounter} className="h-11" />
-                    </div>
-                 </div>
-                 <div className="mt-6 p-4 bg-slate-50 text-slate-600 rounded-xl text-sm font-mono border border-slate-200/50 flex items-center justify-between">
-                   <span>Next generated ID will be:</span>
-                   <span className="font-bold text-indigo-600 text-base">{settings.appNumberPrefix}{settings.currentAppCounter + 1}</span>
-                 </div>
+                 {/* Numbering fields removed - now handled per course */}
 
                  <div className="mt-6 pt-6 border-t border-slate-100 flex items-start gap-4">
                     <div className="flex items-center h-6">
@@ -146,13 +128,10 @@ export default async function SettingsManager() {
                    </div>
                    <div className="space-y-2">
                      <Label className="text-slate-600 text-xs">Color Theme</Label>
-                     <select name="color" className="w-full h-10 border border-slate-200 rounded-md bg-white text-sm px-2 focus:ring-1 focus:ring-slate-900 outline-none">
-                        <option value="indigo">Indigo</option>
-                        <option value="amber">Amber</option>
-                        <option value="rose">Rose</option>
-                        <option value="emerald">Emerald</option>
-                        <option value="slate">Slate</option>
-                     </select>
+                     <div className="flex items-center gap-2">
+                       <Input type="color" name="color" defaultValue="#4f46e5" className="w-12 h-10 p-1 cursor-pointer" />
+                       <span className="text-xs text-slate-500">Pick a color</span>
+                     </div>
                    </div>
                    <div className="md:col-span-3 space-y-2">
                      <Label className="text-slate-600 text-xs">Client-facing Description</Label>

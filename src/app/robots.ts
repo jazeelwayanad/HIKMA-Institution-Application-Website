@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/'],
     },
-    sitemap: `${process.env.NEXT_PUBLIC_APP_URL || 'https://alwarda-application.vercel.app'}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_APP_URL || 'https://alwarda.thepapernest.in'}/sitemap.xml`,
   };
 }

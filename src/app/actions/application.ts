@@ -2,11 +2,13 @@
 
 import { prisma } from "@/lib/prisma";
 import { uploadFile } from "@/lib/storage";
+import { getStudentSession } from "@/app/actions/auth";
 
-export async function submitApplication(formData: FormData, schema: any[]) {
+export async function submitApplication(formData: FormData) {
   try {
     const courseId = formData.get("courseId") as string;
     const dobString = formData.get("dob") as string;
+    const editId = formData.get("editId") as string | null;
 
     if (!courseId || !dobString) {
       return { success: false, error: "Missing crucial basic information." };
@@ -17,64 +19,102 @@ export async function submitApplication(formData: FormData, schema: any[]) {
       return { success: false, error: "Invalid Date of Birth." };
     }
 
-    // Iterate through schema and extract fields
-    const applicantData: Record<string, any> = {};
-    let applicantName = "Unknown";
+    let existingApplication = null;
+    let existingData: Record<string, any> = {};
 
-    for (const field of schema) {
-      const data = formData.get(field.name);
+    if (editId) {
+      const session = await getStudentSession();
+      if (!session || session.sub !== editId) {
+        return { success: false, error: "Unauthorized to edit this application." };
+      }
+
+      existingApplication = await prisma.application.findUnique({
+        where: { id: editId }
+      });
+
+      if (!existingApplication) {
+        return { success: false, error: "Application not found." };
+      }
+
+      const settings = await prisma.systemSettings.findFirst();
+      if (!existingApplication.isEditable && !settings?.globalEditSubmissions) {
+        return { success: false, error: "This application is not currently editable." };
+      }
+
+      existingData = typeof existingApplication.data === 'object' && existingApplication.data !== null ? existingApplication.data as Record<string, any> : {};
+    }
+
+    const applicantData: Record<string, any> = { ...existingData };
+
+    // Extract all fields from FormData
+    for (const [key, value] of Array.from(formData.entries())) {
+      if (key === "courseId" || key === "editId") continue; // We already handled this
       
-      // If it's a file
-      if (field.type === "file") {
-        const file = data as File | null;
-        if (file && file.size > 0 && file.name !== "undefined") {
-          // Upload file via Storage Provider
-          const url = await uploadFile(file);
-          applicantData[field.name] = url;
-        } else if (field.required) {
-          return { success: false, error: `Required file ${field.label} is missing.` };
+      const isFile = typeof value === "object" && value !== null && "size" in value && "name" in value;
+      
+      if (isFile) {
+        const fileValue = value as unknown as File;
+        if (fileValue.size > 0 && fileValue.name !== "undefined") {
+          const url = await uploadFile(fileValue);
+          applicantData[key] = url;
         }
       } else {
-        // Standard text, number, select
-        if (field.required && (!data || data === "")) {
-          return { success: false, error: `Required field ${field.label} is missing.` };
-        }
-        applicantData[field.name] = data;
-
-        // Best effort to find a semantic name for general dashboard viewing
-        if (field.name.toLowerCase().includes("name") && data) {
-           applicantName = data.toString();
-        }
+        applicantData[key] = value;
       }
     }
 
-    // Atomic auto-increment mechanism for standard AppNumbers via Prisma Transactions
-    const applicationNo = await (prisma as any).$transaction(async (tx: any) => {
-      let settings = await tx.systemSettings.findFirst();
-      if (!settings) {
-        settings = await tx.systemSettings.create({ data: {} });
-      }
+    require('fs').appendFileSync('scratch/debug.txt', JSON.stringify({
+      existingData,
+      applicantDataPhoto: applicantData["photo"],
+      formDataPhotoIsFile: typeof formData.get("photo") === "object",
+      formDataPhotoSize: (formData.get("photo") as any)?.size,
+    }) + '\n');
 
-      const nextId = settings.currentAppCounter + 1;
-      await tx.systemSettings.update({
-        where: { id: settings.id },
-        data: { currentAppCounter: nextId }
+
+    if (editId && existingApplication) {
+      // Update existing application
+      const updatedApplication = await prisma.application.update({
+        where: { id: editId },
+        data: {
+          dob,
+          data: applicantData,
+        }
       });
 
-      return `${settings.appNumberPrefix}${nextId}`;
-    });
+      return { success: true, appNo: updatedApplication.applicationNo, applicationId: updatedApplication.id };
+    } else {
+      // Create new application
+      // Atomic auto-increment mechanism for course-specific AppNumbers via Prisma Transactions
+      const applicationNo = await (prisma as any).$transaction(async (tx: any) => {
+        const course = await tx.course.findUnique({
+          where: { id: courseId }
+        });
 
-    // Save Application
-    const application = await prisma.application.create({
-      data: {
-        applicationNo,
-        courseId,
-        dob,
-        data: applicantData,
-      }
-    });
+        if (!course) {
+          throw new Error("Course not found");
+        }
 
-    return { success: true, appNo: applicationNo, applicationId: application.id };
+        const nextId = course.currentAppCounter + 1;
+        await tx.course.update({
+          where: { id: courseId },
+          data: { currentAppCounter: nextId }
+        });
+
+        return `${course.appNumberPrefix}${nextId}`;
+      });
+
+      // Save Application
+      const application = await prisma.application.create({
+        data: {
+          applicationNo,
+          courseId,
+          dob,
+          data: applicantData,
+        }
+      });
+
+      return { success: true, appNo: applicationNo, applicationId: application.id };
+    }
 
   } catch (err: any) {
     if (process.env.NODE_ENV === "development") {

@@ -17,10 +17,6 @@ export default async function CourseBuilder({ params }: { params: Promise<{ id: 
 
   if (!course) notFound();
 
-  const forms = await prisma.formTemplate.findMany({
-    select: { id: true, name: true }
-  });
-
   const hasApplications = course._count.applications > 0;
 
   return (
@@ -81,8 +77,8 @@ export default async function CourseBuilder({ params }: { params: Promise<{ id: 
           title={course.title}
           description={course.description}
           fee={course.fee}
-          formTemplateId={course.formTemplateId}
-          availableForms={forms}
+          appNumberPrefix={course.appNumberPrefix}
+          currentAppCounter={course.currentAppCounter}
         />
       </div>
     </div>

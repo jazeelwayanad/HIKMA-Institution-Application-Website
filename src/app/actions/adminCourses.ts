@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminRoute } from "./adminAuth";
 import { revalidatePath } from "next/cache";
 
-export async function createCourse(data: { title: string, description: string, fee: number, formTemplateId?: string | null }) {
+export async function createCourse(data: { title: string, description: string, fee: number }) {
   await requireAdminRoute();
   
   try {
@@ -14,7 +14,6 @@ export async function createCourse(data: { title: string, description: string, f
         description: data.description,
         fee: data.fee,
         status: "DRAFT",
-        formTemplateId: data.formTemplateId || null,
       }
     });
     
@@ -41,7 +40,7 @@ export async function updateCourseStatus(courseId: string, status: "DRAFT" | "OP
   }
 }
 
-export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, formTemplateId?: string | null, status?: string }) {
+export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, status?: string, appNumberPrefix?: string, currentAppCounter?: number }) {
   await requireAdminRoute();
 
   try {
@@ -51,8 +50,9 @@ export async function updateCourseDetails(courseId: string, data: { title: strin
         title: data.title,
         description: data.description,
         fee: data.fee,
-        formTemplateId: data.formTemplateId || null,
-        ...(data.status && { status: data.status })
+        ...(data.status && { status: data.status }),
+        ...(data.appNumberPrefix !== undefined && { appNumberPrefix: data.appNumberPrefix }),
+        ...(data.currentAppCounter !== undefined && { currentAppCounter: data.currentAppCounter })
       }
     });
     revalidatePath(`/admin/courses/${courseId}`);

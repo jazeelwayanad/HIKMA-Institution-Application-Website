@@ -9,15 +9,15 @@ import { updateApplicationData } from "@/app/actions/adminApplications";
 import { Loader2, Save } from "lucide-react";
 
 export function ApplicationEditClient({ 
-  application, 
-  schema 
+  application
 }: { 
   application: any; 
-  schema: any[] 
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Record<string, any>>(application.data as Record<string, any>);
+  const [formData, setFormData] = useState<Record<string, any>>(
+    typeof application.data === 'object' && application.data !== null ? application.data : {}
+  );
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (name: string, value: any) => {
@@ -39,17 +39,23 @@ export function ApplicationEditClient({
     }
   }
 
+  const fields = Object.keys(formData);
+
   return (
     <div className="space-y-8">
       <div className="space-y-7">
-        {schema.map((field) => {
-          const value = formData[field.name];
-          const isFile = field.type === "file";
+        {fields.map((key) => {
+          const value = formData[key];
+          
+          // Determine if it's a file
+          const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http'));
+
+          const label = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim().replace(/\b\w/g, l => l.toUpperCase());
 
           if (isFile) {
              return (
-               <div key={field.id} className="space-y-2">
-                 <Label className="text-sm font-semibold text-slate-700">{field.label}</Label>
+               <div key={key} className="space-y-2">
+                 <Label className="text-sm font-semibold text-slate-700">{label}</Label>
                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                     <span className="text-xs text-slate-500 font-mono overflow-hidden text-ellipsis max-w-md">
                        {value || "No file uploaded"}
@@ -64,55 +70,16 @@ export function ApplicationEditClient({
           }
 
           return (
-            <div key={field.id} className="space-y-2">
+            <div key={key} className="space-y-2">
               <Label className="text-sm font-semibold text-slate-700">
-                {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                {label}
               </Label>
-
-              {field.type === "textarea" ? (
-                <textarea
-                  value={value || ""}
-                  onChange={e => handleChange(field.name, e.target.value)}
-                  placeholder={field.placeholder}
-                  rows={4}
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              ) : field.type === "select" && field.options ? (
-                <select
-                  value={value || ""}
-                  onChange={e => handleChange(field.name, e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                >
-                  <option value="">Select option...</option>
-                  {field.options.map((opt: string) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              ) : field.type === "radio" && field.options ? (
-                <div className="space-y-2 mt-1">
-                  {field.options.map((opt: string) => (
-                    <label key={opt} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={value === opt}
-                        onChange={() => handleChange(field.name, opt)}
-                        className="w-4 h-4 text-indigo-600"
-                      />
-                      <span className="text-sm text-slate-600">{opt}</span>
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <Input
-                  type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
-                  value={value || ""}
-                  onChange={e => handleChange(field.name, e.target.value)}
-                  placeholder={field.placeholder}
-                  className="h-10"
-                />
-              )}
-              {field.helperText && <p className="text-xs text-slate-400">{field.helperText}</p>}
+              <Input
+                type="text"
+                value={value || ""}
+                onChange={e => handleChange(key, e.target.value)}
+                className="h-10"
+              />
             </div>
           );
         })}

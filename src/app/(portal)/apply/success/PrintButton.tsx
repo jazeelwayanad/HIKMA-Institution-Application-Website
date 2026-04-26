@@ -1,52 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function PrintButton({ applicationId }: { applicationId?: string }) {
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  const handleDownload = async () => {
+export function PrintButton({ applicationId, className }: { applicationId?: string, className?: string }) {
+  const handleDownload = () => {
     if (!applicationId) {
-      // Fallback: if no applicationId is in URL (e.g. old link), use browser print
       window.print();
       return;
     }
-
-    setIsDownloading(true);
-    try {
-      const res = await fetch(`/api/pdf/${applicationId}`);
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "Failed to generate PDF");
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-
-      // Trigger browser download
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Application_${applicationId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("PDF download error:", err);
-      alert("Could not download the PDF. Please try again.");
-    } finally {
-      setIsDownloading(false);
-    }
+    window.open(`/application/${applicationId}/print`, '_blank');
   };
 
   return (
     <Button
       onClick={handleDownload}
-      disabled={isDownloading}
-      className="bg-slate-900 hover:bg-slate-800 text-white rounded-md"
+      className={className || "bg-slate-900 hover:bg-slate-800 text-white rounded-md"}
     >
-      {isDownloading ? "Generating PDF…" : "Print Application"}
+      <svg className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+      </svg>
+      Print Application Form
     </Button>
   );
 }

@@ -8,12 +8,24 @@ import { ApplicationsClientAction } from "./client-actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { bulkUpdateApplicationStatuses, bulkDeleteApplications } from "@/app/actions/adminApplications";
 import { Check, X, Trash2, Loader2, ChevronUp } from "lucide-react";
+import { getHexColor } from "@/lib/colorUtils";
 import {
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function ApplicationsTableClient({
   applications,
@@ -25,6 +37,7 @@ export function ApplicationsTableClient({
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const toggleAll = () => {
     if (selectedIds.length === applications.length) {
@@ -35,7 +48,7 @@ export function ApplicationsTableClient({
   };
 
   const toggleOne = (id: string) => {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter((x: string) => x !== id) : [...prev, id]
     );
   };
@@ -51,13 +64,12 @@ export function ApplicationsTableClient({
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (confirm(`Are you sure you want to delete ${selectedIds.length} applications?`)) {
-      setIsUpdating(true);
-      await bulkDeleteApplications(selectedIds);
-      setSelectedIds([]);
-      setIsUpdating(false);
-      router.refresh(); // Request Next.js to re-fetch Server Components with new data
-    }
+    setIsUpdating(true);
+    await bulkDeleteApplications(selectedIds);
+    setSelectedIds([]);
+    setIsUpdating(false);
+    setDeleteDialogOpen(false);
+    router.refresh(); // Request Next.js to re-fetch Server Components with new data
   };
 
   if (applications.length === 0) {
@@ -70,7 +82,7 @@ export function ApplicationsTableClient({
         <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
           <tr>
             <th className="px-6 py-4 w-12 text-center">
-              <Checkbox 
+              <Checkbox
                 checked={selectedIds.length === applications.length && applications.length > 0}
                 onCheckedChange={toggleAll}
               />
@@ -86,30 +98,30 @@ export function ApplicationsTableClient({
           {applications.map((app: typeof applications[0]) => {
             const statusMeta = availableStatuses.find((s: typeof availableStatuses[0]) => s.value === app.status);
             const isSelected = selectedIds.includes(app.id);
-            
+
             // Extract applicant name flexibly
-            const applicantName = 
-              app.data?.full_name || 
-              app.data?.name || 
-              app.data?.applicant_name || 
-              app.data?.firstName || 
+            const applicantName =
+              app.data?.full_name ||
+              app.data?.name ||
+              app.data?.applicant_name ||
+              app.data?.firstName ||
               "Student";
 
             return (
               <tr key={app.id} className={`hover:bg-slate-50 transition-colors ${isSelected ? "bg-indigo-50/50" : ""}`}>
                 <td className="px-6 py-4 align-middle text-center">
-                  <Checkbox 
+                  <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => toggleOne(app.id)}
                   />
                 </td>
-                <td className="px-6 py-4 align-middle">
+                <td className="px-6 py-4 align-middle whitespace-nowrap">
                   <Link href={`/admin/applications/${app.id}`} className="block">
                     <span className="font-mono text-indigo-600 font-bold hover:underline">{app.applicationNo}</span>
                     <p className="text-xs text-slate-400 mt-1">{new Date(app.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                   </Link>
                 </td>
-                <td className="px-6 py-4 align-middle text-slate-900 font-medium whitespace-nowrap">
+                <td className="px-6 py-4 align-middle text-slate-900 font-medium">
                   {applicantName}
                 </td>
                 <td className="px-6 py-4 align-middle text-slate-700 font-medium">
@@ -148,7 +160,7 @@ export function ApplicationsTableClient({
 
           <div className="flex flex-wrap items-center gap-2">
             <DropdownMenu>
-              <DropdownMenuTrigger 
+              <DropdownMenuTrigger
                 disabled={isUpdating}
                 className="inline-flex items-center gap-2 px-3 py-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300 transition-colors rounded-lg text-sm font-semibold disabled:opacity-50"
               >
@@ -159,17 +171,15 @@ export function ApplicationsTableClient({
                   Set Status to...
                 </div>
                 {availableStatuses.map((status: typeof availableStatuses[0]) => {
-                  const colorClasses = 
-                    status.color === 'emerald' ? 'text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700' :
-                    status.color === 'amber' ? 'text-amber-600 focus:bg-amber-50 focus:text-amber-700' :
-                    status.color === 'red' ? 'text-rose-600 focus:bg-rose-50 focus:text-rose-700' :
-                    'text-indigo-600 focus:bg-indigo-50 focus:text-indigo-700';
-
+                  const hex = getHexColor(status.color);
                   return (
                     <DropdownMenuItem
                       key={status.value}
                       onClick={() => handleBulkUpdate(status.value)}
-                      className={`cursor-pointer font-medium mb-1 last:mb-0 rounded-md px-3 py-2 ${colorClasses}`}
+                      className="cursor-pointer font-medium mb-1 last:mb-0 rounded-md px-3 py-2 transition-colors"
+                      style={{ color: hex }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${hex}15`}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       {status.label}
                     </DropdownMenuItem>
@@ -180,20 +190,42 @@ export function ApplicationsTableClient({
 
             <div className="w-px h-6 bg-slate-700 mx-1"></div>
 
-            <button 
-              onClick={handleBulkDelete}
-              disabled={isUpdating}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800 text-slate-300 hover:bg-red-500/20 hover:text-red-400 transition-colors rounded-lg text-sm font-semibold ml-2 disabled:opacity-50"
-            >
-              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Delete
-            </button>
-            <button 
-              onClick={() => setSelectedIds([])}
-              className="text-xs text-slate-400 hover:text-slate-200 underline ml-2"
-            >
-              Cancel
-            </button>
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <AlertDialogTrigger
+                disabled={isUpdating}
+                className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800 text-slate-300 hover:bg-red-500/20 hover:text-red-400 transition-colors rounded-lg text-sm font-semibold ml-2 disabled:opacity-50"
+              >
+                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Delete
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selectedIds.length} application{selectedIds.length > 1 ? "s" : ""}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. The selected application{selectedIds.length > 1 ? "s" : ""} will be permanently removed.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
+
+          <div className="w-px h-6 bg-slate-700 mx-2" />
+
+          <button
+            onClick={() => setSelectedIds([])}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-slate-400 hover:text-white transition-colors rounded-lg text-sm font-medium"
+          >
+            <X className="w-4 h-4" /> Clear
+          </button>
         </div>
       )}
     </div>

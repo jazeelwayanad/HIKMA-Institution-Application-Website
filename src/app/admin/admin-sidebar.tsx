@@ -9,7 +9,6 @@ import { logoutAdmin } from "@/app/actions/adminAuth";
 const navLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/courses", label: "Course Manager", icon: BookOpen },
-  { href: "/admin/forms", label: "Form Builder", icon: FileEdit },
   { href: "/admin/applications", label: "Applications", icon: Users },
   { href: "/admin/settings", label: "System Settings", icon: Settings },
 ];

@@ -3,6 +3,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteApplication } from "@/app/actions/adminApplications";
 import { Eye, Pencil, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function ApplicationsClientAction({ 
   applicationId,
@@ -14,40 +25,57 @@ export function ApplicationsClientAction({
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
+  const [open, setOpen] = useState(false);
+
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this application?")) {
-      setIsDeleting(true);
-      await deleteApplication(applicationId);
-      setIsDeleting(false);
-    }
+    setIsDeleting(true);
+    await deleteApplication(applicationId);
+    setIsDeleting(false);
+    setOpen(false);
   };
 
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-end gap-2">
       <button
         onClick={() => router.push(`/admin/applications/${applicationId}`)}
         title="View Details"
-        className="h-8 w-8 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+        className="px-3 py-1.5 text-xs font-semibold rounded-lg inline-flex items-center justify-center text-slate-600 border border-slate-200 bg-white hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-sm"
       >
-        <Eye className="h-4 w-4" />
+        <Eye className="h-3.5 w-3.5 mr-1.5" />
+        View
       </button>
 
       <button
         onClick={() => router.push(`/admin/applications/${applicationId}/edit`)}
         title="Edit Responses"
-        className="h-8 w-8 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+        className="px-3 py-1.5 text-xs font-semibold rounded-lg inline-flex items-center justify-center text-slate-600 border border-slate-200 bg-white hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200 transition-colors shadow-sm"
       >
-        <Pencil className="h-4 w-4" />
+        <Pencil className="h-3.5 w-3.5 mr-1.5" />
+        Edit
       </button>
 
-      <button
-        onClick={handleDelete}
-        disabled={isDeleting}
-        title="Delete Application"
-        className="h-8 w-8 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogTrigger
+          className="px-3 py-1.5 text-xs font-semibold rounded-lg inline-flex items-center justify-center text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-colors shadow-sm disabled:opacity-50"
+          disabled={isDeleting}
+          title="Delete Application"
+        >
+          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+          {isDeleting ? "Deleting..." : "Delete"}
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the application.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete Application</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
