@@ -9,68 +9,49 @@ datasource db {
 model Admin {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String // Hashed
+  password  String
   role      String   @default("SUPER_ADMIN")
   createdAt DateTime @default(now())
 }
 
 model Course {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  status      String    @default("DRAFT") // DRAFT, OPEN, CLOSED
-  deadline    DateTime?
-  maxSeats    Int?
-  fee         Float?    @default(0)
-
-  // Relational link to the standalone form builder template
-  // REMOVED: formTemplateId String?
-  // REMOVED: formTemplate   FormTemplate? @relation(fields: [formTemplateId], references: [id])
-
-  applications Application[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  
-  appNumberPrefix   String @default("APP-")
-  currentAppCounter Int    @default(1000)
-
-  requiredDocuments Json? // [{ name: string, required: boolean }]
-  subCourses        Json? // [string]
+  id                String        @id @default(cuid())
+  title             String
+  description       String?
+  status            String        @default("DRAFT")
+  deadline          DateTime?
+  maxSeats          Int?
+  fee               Float?        @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  appNumberPrefix   String        @default("APP-")
+  currentAppCounter Int           @default(1000)
+  requiredDocuments Json?
+  subCourses        Json?
+  applications      Application[]
 }
 
-
-
 model Application {
-  id            String @id @default(cuid())
-  applicationNo String @unique // Auto-generated (e.g. APP-1001)
-  status        String @default("PENDING") // PENDING, APPROVED, REJECTED, or custom values
-
-  // Fields for auth to check status
-  dob DateTime
-
-  // Dynamically filled content according to Course's formSchema
-  data Json
-
-  // Relations
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id])
-
-  isEditable Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Soft delete flag recommended in the specs
-  deletedAt DateTime?
+  id            String    @id @default(cuid())
+  applicationNo String    @unique
+  status        String    @default("PENDING")
+  dob           DateTime
+  data          Json
+  courseId      String
+  isEditable    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  course        Course    @relation(fields: [courseId], references: [id])
 }
 
 model ApplicationStatus {
   id          String   @id @default(cuid())
-  label       String   @unique // e.g. "Interview Scheduled"
-  value       String   @unique // e.g. "INTERVIEW_SCHEDULED"
-  description String?  // Optional description for client side
-  color       String   @default("indigo") // tailwind color prefix: indigo, amber, emerald, etc.
+  label       String   @unique
+  value       String   @unique
+  color       String   @default("indigo")
   createdAt   DateTime @default(now())
+  description String?
 }
 
 model SystemSettings {

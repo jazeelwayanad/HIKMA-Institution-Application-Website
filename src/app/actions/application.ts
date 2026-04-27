@@ -67,12 +67,7 @@ export async function submitApplication(formData: FormData) {
       }
     }
 
-    require('fs').appendFileSync('scratch/debug.txt', JSON.stringify({
-      existingData,
-      applicantDataPhoto: applicantData["photo"],
-      formDataPhotoIsFile: typeof formData.get("photo") === "object",
-      formDataPhotoSize: (formData.get("photo") as any)?.size,
-    }) + '\n');
+
 
 
     if (editId && existingApplication) {
@@ -121,9 +116,7 @@ export async function submitApplication(formData: FormData) {
     }
 
   } catch (err: any) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Submission error:", err);
-    }
+    console.error("Submission error:", err);
     return { success: false, error: "An internal server error occurred saving your application." };
   }
 }
