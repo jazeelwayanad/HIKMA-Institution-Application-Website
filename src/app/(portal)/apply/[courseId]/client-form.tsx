@@ -1,22 +1,24 @@
 "use client";
-
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Pencil, CheckCircle } from "lucide-react";
+
+import { ArrowLeft, Pencil, CheckCircle, FileText, Upload, X as CloseIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { submitApplication } from "@/app/actions/application";
 import { adminSubmitApplication } from "@/app/actions/adminApplications";
 
-export function ApplicationFormClient({ courseId, courseTitle, initialData, editId, isAdmin, availableCourses }: {
+export function ApplicationFormClient({ courseId, courseTitle, initialData, editId, isAdmin, availableCourses, requiredDocuments, subCourses }: {
   courseId: string,
   courseTitle?: string,
   initialData?: Record<string, any>,
   editId?: string,
   isAdmin?: boolean,
-  availableCourses?: { id: string; title: string }[]
+  availableCourses?: { id: string; title: string }[],
+  requiredDocuments?: any,
+  subCourses?: any
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -25,6 +27,23 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
   const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photo || null);
   const [activeCourseId, setActiveCourseId] = useState(courseId);
   const [reviewData, setReviewData] = useState<Record<string, string> | null>(null);
+
+  // Document previews/filenames for review
+  const [docPreviews, setDocPreviews] = useState<Record<string, { name: string, url: string | null }>>({});
+
+  useEffect(() => {
+    // If editing, populate docPreviews with initial document URLs if they exist
+    if (initialData && Array.isArray(requiredDocuments)) {
+      const initialPreviews: Record<string, { name: string, url: string | null }> = {};
+      requiredDocuments.forEach((doc: any) => {
+        const key = `doc_${doc.name.replace(/\s+/g, '_').toLowerCase()}`;
+        if (initialData[key]) {
+          initialPreviews[key] = { name: "Existing Document", url: initialData[key] };
+        }
+      });
+      setDocPreviews(initialPreviews);
+    }
+  }, [initialData, requiredDocuments]);
 
   const fieldLabels: Record<string, string> = {
     full_name: "Full Name", dob: "Date of Birth", father_name: "Name of Father",
@@ -35,13 +54,14 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
     whatsapp_number: "WhatsApp Number", marital_status: "Marital Status",
     madrasa_qualification: "Madrasa Qualification", last_school_name: "Last School",
     sslc_hse_reg_number: "SSLC/HSE Reg. No.", course_selected: "Course Selected",
+    sub_course: "Sub Course",
     remarks: "Remarks",
   };
 
   const sections = [
     { title: "Personal Information", keys: ["full_name","dob","father_name","mother_name","mother_mobile","marital_status"] },
     { title: "Contact & Address", keys: ["guardian_name","guardian_relation","guardian_mobile","house_name","place","post_office","district","whatsapp_number"] },
-    { title: "Academic Background", keys: ["madrasa_qualification","last_school_name","sslc_hse_reg_number","course_selected","remarks"] },
+    { title: "Academic Background", keys: ["madrasa_qualification","last_school_name","sslc_hse_reg_number","course_selected", ...(Array.isArray(subCourses) && subCourses.length > 0 ? ["sub_course"] : []), "remarks"] },
   ];
 
   function handleReviewClick() {
@@ -140,6 +160,34 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
               </div>
             </div>
           ))}
+
+          {/* Documents Review */}
+          {Array.isArray(requiredDocuments) && requiredDocuments.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100">Uploaded Documents</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                {requiredDocuments.map((doc: any, i: number) => {
+                  const key = `doc_${doc.name.replace(/\s+/g, '_').toLowerCase()}`;
+                  const preview = docPreviews[key];
+                  return (
+                    <div key={i} className="flex flex-col gap-0.5">
+                      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">{doc.name}</span>
+                      <span className="text-sm font-medium text-slate-800 flex items-center gap-1.5">
+                        {preview ? (
+                          <>
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                            {preview.name.length > 30 ? preview.name.substring(0, 27) + '...' : preview.name}
+                          </>
+                        ) : (
+                          <span className="text-slate-400 italic">— Not Uploaded —</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {errorDetails && (
             <div className="p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200">{errorDetails}</div>
           )}
@@ -213,12 +261,12 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="full_name" className="text-slate-700 font-medium">Full Name</Label>
+          <Label htmlFor="full_name" className="text-slate-700 font-medium">Full Name <span className="text-red-500">*</span></Label>
           <Input type="text" id="full_name" name="full_name" required defaultValue={initialData?.full_name || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="dob" className="text-slate-700 font-medium">Date of Birth</Label>
+          <Label htmlFor="dob" className="text-slate-700 font-medium">Date of Birth <span className="text-red-500">*</span></Label>
           <Input type="date" id="dob" name="dob" required defaultValue={initialData?.dob || ""} className="border-slate-300 rounded-md h-9 max-w-sm" />
         </div>
 
@@ -228,7 +276,7 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="mother_name" className="text-slate-700 font-medium">Name of Mother</Label>
+          <Label htmlFor="mother_name" className="text-slate-700 font-medium">Name of Mother <span className="text-red-500">*</span></Label>
           <Input type="text" id="mother_name" name="mother_name" required defaultValue={initialData?.mother_name || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
@@ -238,37 +286,37 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="guardian_name" className="text-slate-700 font-medium">Name of Guardian</Label>
+          <Label htmlFor="guardian_name" className="text-slate-700 font-medium">Name of Guardian <span className="text-red-500">*</span></Label>
           <Input type="text" id="guardian_name" name="guardian_name" required defaultValue={initialData?.guardian_name || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="guardian_relation" className="text-slate-700 font-medium">Relation with Guardian</Label>
+          <Label htmlFor="guardian_relation" className="text-slate-700 font-medium">Relation with Guardian <span className="text-red-500">*</span></Label>
           <Input type="text" id="guardian_relation" name="guardian_relation" required defaultValue={initialData?.guardian_relation || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="guardian_mobile" className="text-slate-700 font-medium">Guardian's Mobile Number</Label>
+          <Label htmlFor="guardian_mobile" className="text-slate-700 font-medium">Guardian's Mobile Number <span className="text-red-500">*</span></Label>
           <Input type="tel" id="guardian_mobile" name="guardian_mobile" required defaultValue={initialData?.guardian_mobile || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="house_name" className="text-slate-700 font-medium">House Name of Student</Label>
+          <Label htmlFor="house_name" className="text-slate-700 font-medium">House Name of Student <span className="text-red-500">*</span></Label>
           <Input type="text" id="house_name" name="house_name" required defaultValue={initialData?.house_name || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="place" className="text-slate-700 font-medium">Place</Label>
+          <Label htmlFor="place" className="text-slate-700 font-medium">Place <span className="text-red-500">*</span></Label>
           <Input type="text" id="place" name="place" required defaultValue={initialData?.place || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="post_office" className="text-slate-700 font-medium">Post Office</Label>
+          <Label htmlFor="post_office" className="text-slate-700 font-medium">Post Office <span className="text-red-500">*</span></Label>
           <Input type="text" id="post_office" name="post_office" required defaultValue={initialData?.post_office || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="district" className="text-slate-700 font-medium">District</Label>
+          <Label htmlFor="district" className="text-slate-700 font-medium">District <span className="text-red-500">*</span></Label>
           <SearchableSelect 
             name="district" 
             defaultValue={initialData?.district} 
@@ -282,12 +330,12 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="whatsapp_number" className="text-slate-700 font-medium">Whatsapp Number</Label>
+          <Label htmlFor="whatsapp_number" className="text-slate-700 font-medium">Whatsapp Number <span className="text-red-500">*</span></Label>
           <Input type="tel" id="whatsapp_number" name="whatsapp_number" required defaultValue={initialData?.whatsapp_number || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="marital_status" className="text-slate-700 font-medium">Marital Status</Label>
+          <Label htmlFor="marital_status" className="text-slate-700 font-medium">Marital Status <span className="text-red-500">*</span></Label>
           <select id="marital_status" name="marital_status" required defaultValue={initialData?.marital_status || ""} className="flex h-9 w-full rounded-md border border-slate-300 bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
             <option value="" disabled>Select status...</option>
             <option value="Single">Single</option>
@@ -308,12 +356,12 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="last_school_name" className="text-slate-700 font-medium">Last School Name</Label>
+          <Label htmlFor="last_school_name" className="text-slate-700 font-medium">Last School Name <span className="text-red-500">*</span></Label>
           <Input type="text" id="last_school_name" name="last_school_name" required defaultValue={initialData?.last_school_name || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
-          <Label htmlFor="sslc_hse_reg_number" className="text-slate-700 font-medium">SSLC/HSE Reg. Number</Label>
+          <Label htmlFor="sslc_hse_reg_number" className="text-slate-700 font-medium">SSLC/HSE Reg. Number <span className="text-red-500">*</span></Label>
           <Input type="text" id="sslc_hse_reg_number" name="sslc_hse_reg_number" required defaultValue={initialData?.sslc_hse_reg_number || ""} className="border-slate-300 rounded-md h-9" />
         </div>
 
@@ -341,10 +389,100 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
           )}
         </div>
 
+        {Array.isArray(subCourses) && subCourses.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
+            <Label htmlFor="sub_course" className="text-slate-700 font-medium">Sub Course</Label>
+            <select
+              id="sub_course"
+              name="sub_course"
+              required
+              defaultValue={initialData?.sub_course || ""}
+              className="flex h-9 w-full rounded-md border border-slate-300 bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="" disabled>Select sub course...</option>
+              {subCourses.map((sc: string) => (
+                <option key={sc} value={sc}>{sc}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-2">
           <Label htmlFor="remarks" className="text-slate-700 font-medium">Remarks</Label>
           <Input type="text" id="remarks" name="remarks" defaultValue={initialData?.remarks || ""} className="border-slate-300 rounded-md h-9" />
         </div>
+
+        {/* Documents Section */}
+        {Array.isArray(requiredDocuments) && requiredDocuments.length > 0 && (
+          <>
+            <div className="bg-[#DAB31B] text-slate-900 font-bold text-center py-2 text-lg border-y-2 border-white shadow-sm my-6 rounded-md -mx-2 md:-mx-4">
+              Documents Upload
+            </div>
+            <div className="space-y-4">
+              {requiredDocuments.map((doc: any, idx: number) => {
+                const key = `doc_${doc.name.replace(/\s+/g, '_').toLowerCase()}`;
+                const preview = docPreviews[key];
+                return (
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-2">
+                    <Label className="text-slate-700 font-medium mt-2">
+                      {doc.name} {doc.required && <span className="text-red-500">*</span>}
+                    </Label>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <label className={`flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-all ${preview ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 hover:border-indigo-400 bg-slate-50'}`}>
+                          <div className={`p-2 rounded-full ${preview ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                            {preview ? <CheckCircle className="w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-semibold truncate ${preview ? 'text-emerald-700' : 'text-slate-600'}`}>
+                              {preview ? preview.name : `Click to upload ${doc.name}`}
+                            </p>
+                            <p className="text-[11px] text-slate-400">PDF, JPG or PNG (Max 5MB)</p>
+                          </div>
+                          <input 
+                            type="file" 
+                            name={key}
+                            required={doc.required && !preview}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setDocPreviews(prev => ({
+                                  ...prev,
+                                  [key]: { name: file.name, url: URL.createObjectURL(file) }
+                                }));
+                              }
+                            }}
+                            className="hidden" 
+                          />
+                        </label>
+                        {preview && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDocPreviews(prev => {
+                                const next = { ...prev };
+                                delete next[key];
+                                return next;
+                              });
+                            }}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600 z-10"
+                          >
+                            <CloseIcon className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      {preview?.url && preview.url.startsWith('http') && (
+                        <a href={preview.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-indigo-600 font-medium hover:underline">
+                          <FileText className="w-3 h-3" /> View current document
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {/* Note — student-facing only, hidden for admin */}
         {!isAdmin && (

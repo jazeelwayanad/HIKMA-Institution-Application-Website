@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, User, Edit } from "lucide-react";
+import { ApplicationDataClient } from "@/components/application-data-client";
 
 export default async function ApplicationDetailsPage() {
   const session = await getStudentSession();
@@ -69,45 +70,12 @@ export default async function ApplicationDetailsPage() {
           </div>
 
           <div className="p-6 md:p-8">
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              {Object.entries(submittedData).map(([key, value]) => {
-                // Formatting
-                const label = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
-                const lowerKey = key.toLowerCase();
-                const isUrl = typeof value === 'string' && (value.startsWith('/uploads/') || (value as string).includes('http'));
-                const isImage = isUrl && (
-                  /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(value as string) ||
-                  lowerKey.includes('photo') || lowerKey.includes('pic') || lowerKey.includes('image')
-                );
-
-                return (
-                  <div key={key} className={`rounded-xl bg-white border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-4 relative overflow-hidden group hover:border-indigo-200 transition-colors ${isUrl ? 'md:col-span-2' : ''}`}>
-                    <div className="absolute left-0 top-0 h-full w-1 bg-slate-100 group-hover:bg-indigo-400 transition-colors"></div>
-                    <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-3">{label}</dt>
-                    <dd className="pl-3 text-slate-900 font-medium">
-                      {isImage ? (
-                        <div className="flex items-start gap-4 mt-2">
-                          <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-indigo-100 shadow-sm flex-shrink-0 bg-slate-50">
-                            <img src={value as string} alt={label} className="w-full h-full object-cover" />
-                          </div>
-                          {/* <div className="flex flex-col gap-2 justify-center">
-                            <a href={value as string} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors text-xs font-semibold">
-                              View Full Size
-                            </a>
-                          </div> */}
-                        </div>
-                      ) : isUrl ? (
-                        <a href={value as string} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline break-all">
-                          {value as string}
-                        </a>
-                      ) : (
-                        <span className="whitespace-pre-wrap">{String(value)}</span>
-                      )}
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
+            <ApplicationDataClient 
+              formData={submittedData} 
+              applicantName={submittedData.full_name || "Applicant"} 
+              appNo={application.applicationNo}
+              variant="student"
+            />
           </div>
         </div>
       </div>

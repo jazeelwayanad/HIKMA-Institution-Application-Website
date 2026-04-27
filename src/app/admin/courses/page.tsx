@@ -12,7 +12,11 @@ export default async function CoursesManager() {
     orderBy: { createdAt: "desc" },
     include: {
       _count: {
-        select: { applications: true }
+        select: { 
+          applications: {
+            where: { deletedAt: null }
+          }
+        }
       }
     }
   });

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BookOpen, FileEdit, Users, Settings, ShieldCheck, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, BookOpen, FileEdit, Users, Settings, ShieldCheck, LogOut, Menu, X, Image as ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { logoutAdmin } from "@/app/actions/adminAuth";
 
@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/courses", label: "Course Manager", icon: BookOpen },
   { href: "/admin/applications", label: "Applications", icon: Users },
+  { href: "/admin/media", label: "Media", icon: ImageIcon },
   { href: "/admin/settings", label: "System Settings", icon: Settings },
 ];
 

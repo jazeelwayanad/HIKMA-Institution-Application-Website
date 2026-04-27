@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdminRoute } from "./adminAuth";
 import { revalidatePath } from "next/cache";
-import { uploadFile } from "@/lib/storage";
+import { uploadFile, deleteFile } from "@/lib/storage";
 
 export async function adminSubmitApplication(formData: FormData) {
   await requireAdminRoute();
@@ -36,6 +36,10 @@ export async function adminSubmitApplication(formData: FormData) {
       if (isFile) {
         const fileValue = value as unknown as File;
         if (fileValue.size > 0 && fileValue.name !== "undefined") {
+          // If there's an existing file for this key, delete it
+          if (applicantData[key]) {
+            await deleteFile(applicantData[key]);
+          }
           const url = await uploadFile(fileValue);
           applicantData[key] = url;
         }
@@ -101,6 +105,17 @@ export async function deleteApplication(applicationId: string) {
   await requireAdminRoute();
   
   try {
+    const app = await prisma.application.findUnique({ where: { id: applicationId } });
+    if (app && app.data && typeof app.data === 'object') {
+      const data = app.data as Record<string, any>;
+      for (const key in data) {
+        const val = data[key];
+        if (typeof val === 'string' && (val.includes('cloudinary.com') || val.startsWith('/uploads/'))) {
+          await deleteFile(val);
+        }
+      }
+    }
+
     await prisma.application.update({
       where: { id: applicationId },
       data: { deletedAt: new Date() }
@@ -153,6 +168,22 @@ export async function bulkDeleteApplications(applicationIds: string[]) {
   await requireAdminRoute();
   
   try {
+    const apps = await prisma.application.findMany({
+      where: { id: { in: applicationIds } }
+    });
+
+    for (const app of apps) {
+      if (app.data && typeof app.data === 'object') {
+        const data = app.data as Record<string, any>;
+        for (const key in data) {
+          const val = data[key];
+          if (typeof val === 'string' && (val.includes('cloudinary.com') || val.startsWith('/uploads/'))) {
+            await deleteFile(val);
+          }
+        }
+      }
+    }
+
     await prisma.application.updateMany({
       where: { id: { in: applicationIds } },
       data: { deletedAt: new Date() }
@@ -163,5 +194,57 @@ export async function bulkDeleteApplications(applicationIds: string[]) {
   } catch (error) {
     console.error(error);
     return { success: false, error: "Failed to delete applications." };
+  }
+}
+
+export async function deleteMediaFile(applicationId: string, fieldKey: string, fileUrl: string) {
+  await requireAdminRoute();
+
+  try {
+    const app = await prisma.application.findUnique({ where: { id: applicationId } });
+    if (!app) return { success: false, error: "Application not found." };
+
+    const data = typeof app.data === 'object' && app.data !== null ? { ...(app.data as Record<string, any>) } : {};
+    
+    // Find the actual key in the data object
+    if (data[fieldKey] === fileUrl) {
+      delete data[fieldKey];
+    } else {
+      // Fallback search
+      for (const k in data) {
+        if (data[k] === fileUrl) {
+          delete data[k];
+          break;
+        }
+      }
+    }
+
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: { data }
+    });
+
+    await deleteFile(fileUrl);
+
+    revalidatePath("/admin/media");
+    revalidatePath(`/admin/applications/${applicationId}`);
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Failed to delete media file." };
+  }
+}
+
+export async function bulkDeleteMediaFiles(files: { appId: string, fieldKey: string, url: string }[]) {
+  await requireAdminRoute();
+
+  try {
+    for (const file of files) {
+      await deleteMediaFile(file.appId, file.fieldKey, file.url);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Failed to delete some media files." };
   }
 }

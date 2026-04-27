@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ApplicationsClientAction } from "../client-actions";
 import { InlineStatusDropdown } from "../inline-status";
 import { Calendar, Mail, Phone, User, FileText, ArrowLeft, Edit } from "lucide-react";
+import { ApplicationDataClient } from "@/components/application-data-client";
 
 export default async function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -142,51 +143,11 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
             </div>
 
             <div className="p-6">
-              {(() => {
-                // We no longer have a dynamic form schema, use fixed fields or raw JSON keys
-                return (
-                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {Object.entries(formData)
-                      .filter(([key]) => key !== 'adminNote')
-                      .map(([key, value]: [string, any]) => {
-                        const label = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
-                        const lowerKey = key.toLowerCase();
-                        const isUrl = typeof value === 'string' && (value.startsWith('/uploads/') || (value as string).includes('http'));
-                        const isImage = isUrl && (
-                          /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(value as string) ||
-                          lowerKey.includes('photo') || lowerKey.includes('pic') || lowerKey.includes('image')
-                        );
-                        return (
-                          <div key={key} className={isUrl ? "md:col-span-2" : ""}>
-                            <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{label}</dt>
-                            <dd className="text-slate-900 font-medium whitespace-pre-wrap">
-                              {isImage ? (
-                                <div className="flex items-start gap-4">
-                                  <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-indigo-100 shadow-sm bg-slate-50 flex-shrink-0">
-                                    <img src={value as string} alt={label} className="w-full h-full object-cover" />
-                                  </div>
-                                  <div className="flex flex-col gap-2 justify-center">
-                                    <a href={value as string} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm font-semibold">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                      View Full Size
-                                    </a>
-                                  </div>
-                                </div>
-                              ) : isUrl ? (
-                                <a href={value as string} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors">
-                                  <FileText className="w-4 h-4" />
-                                  View File
-                                </a>
-                              ) : (
-                                String(value) || <span className="text-slate-300 italic">Not provided</span>
-                              )}
-                            </dd>
-                          </div>
-                        );
-                      })}
-                  </dl>
-                );
-              })()}
+              <ApplicationDataClient 
+                formData={formData} 
+                applicantName={formData.full_name || "Applicant"} 
+                appNo={application.applicationNo} 
+              />
             </div>
           </div>
         </div>

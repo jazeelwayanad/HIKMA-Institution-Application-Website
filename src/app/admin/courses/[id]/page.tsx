@@ -11,7 +11,13 @@ export default async function CourseBuilder({ params }: { params: Promise<{ id: 
   const course = await prisma.course.findUnique({
     where: { id: resolvedParams.id },
     include: {
-      _count: { select: { applications: true } }
+      _count: {
+        select: { 
+          applications: {
+            where: { deletedAt: null }
+          }
+        }
+      }
     }
   });
 
@@ -79,6 +85,8 @@ export default async function CourseBuilder({ params }: { params: Promise<{ id: 
           fee={course.fee}
           appNumberPrefix={course.appNumberPrefix}
           currentAppCounter={course.currentAppCounter}
+          requiredDocuments={course.requiredDocuments}
+          subCourses={course.subCourses}
         />
       </div>
     </div>

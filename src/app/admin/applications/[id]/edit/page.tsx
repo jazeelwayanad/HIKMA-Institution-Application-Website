@@ -48,6 +48,8 @@ export default async function ApplicationEditPage({ params }: { params: Promise<
           editId={application.id}
           isAdmin={true}
           availableCourses={allCourses}
+          requiredDocuments={application.course.requiredDocuments}
+          subCourses={application.course.subCourses}
         />
       </div>
     </div>

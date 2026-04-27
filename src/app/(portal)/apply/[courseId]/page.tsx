@@ -63,6 +63,8 @@ export default async function CourseApplyPage({
           courseTitle={course.title} 
           initialData={initialData}
           editId={editId}
+          requiredDocuments={course.requiredDocuments}
+          subCourses={course.subCourses}
         />
       </div>
     </div>

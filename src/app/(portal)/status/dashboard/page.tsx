@@ -14,6 +14,7 @@ import {
   LogOut
 } from "lucide-react";
 import { getGradientStyles } from "@/lib/colorUtils";
+import { MediaPreview } from "@/components/media-preview";
 
 export default async function StatusDashboard() {
   const session = await getStudentSession();
@@ -87,13 +88,20 @@ export default async function StatusDashboard() {
             style={getGradientStyles(statusMeta?.color || 'indigo')}
           >
             {/* Photo */}
-            <div className="w-32 h-40 bg-white rounded-lg shadow-md border-4 border-white overflow-hidden flex-shrink-0 flex items-center justify-center">
-              {submittedData.photo ? (
-                <img src={submittedData.photo as string} alt="Applicant" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-12 h-12 text-slate-300" />
-              )}
-            </div>
+            <MediaPreview 
+              url={submittedData.photo as string} 
+              label="Applicant Photo" 
+              applicantName={submittedData.full_name as string}
+              appNo={application.applicationNo}
+            >
+              <div className="w-32 h-40 bg-white rounded-lg shadow-md border-4 border-white overflow-hidden flex-shrink-0 flex items-center justify-center hover:scale-[1.02] transition-transform">
+                {submittedData.photo ? (
+                  <img src={submittedData.photo as string} alt="Applicant" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-12 h-12 text-slate-300" />
+                )}
+              </div>
+            </MediaPreview>
             
             <div className="flex-grow text-center md:text-left text-white">
               <h2 className="text-3xl font-extrabold mb-1">{submittedData.full_name || "Applicant"}</h2>

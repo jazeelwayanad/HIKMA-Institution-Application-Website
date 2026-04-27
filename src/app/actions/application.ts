@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { uploadFile } from "@/lib/storage";
+import { uploadFile, deleteFile } from "@/lib/storage";
 import { getStudentSession } from "@/app/actions/auth";
 
 export async function submitApplication(formData: FormData) {
@@ -55,6 +55,10 @@ export async function submitApplication(formData: FormData) {
       if (isFile) {
         const fileValue = value as unknown as File;
         if (fileValue.size > 0 && fileValue.name !== "undefined") {
+          // If there's an existing file for this key, delete it
+          if (applicantData[key]) {
+            await deleteFile(applicantData[key]);
+          }
           const url = await uploadFile(fileValue);
           applicantData[key] = url;
         }

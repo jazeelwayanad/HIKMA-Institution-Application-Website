@@ -40,7 +40,16 @@ export async function updateCourseStatus(courseId: string, status: "DRAFT" | "OP
   }
 }
 
-export async function updateCourseDetails(courseId: string, data: { title: string, description: string, fee: number, status?: string, appNumberPrefix?: string, currentAppCounter?: number }) {
+export async function updateCourseDetails(courseId: string, data: { 
+  title: string, 
+  description: string, 
+  fee: number, 
+  status?: string, 
+  appNumberPrefix?: string, 
+  currentAppCounter?: number,
+  requiredDocuments?: any,
+  subCourses?: any
+}) {
   await requireAdminRoute();
 
   try {
@@ -52,7 +61,9 @@ export async function updateCourseDetails(courseId: string, data: { title: strin
         fee: data.fee,
         ...(data.status && { status: data.status }),
         ...(data.appNumberPrefix !== undefined && { appNumberPrefix: data.appNumberPrefix }),
-        ...(data.currentAppCounter !== undefined && { currentAppCounter: data.currentAppCounter })
+        ...(data.currentAppCounter !== undefined && { currentAppCounter: data.currentAppCounter }),
+        ...(data.requiredDocuments !== undefined && { requiredDocuments: data.requiredDocuments }),
+        ...(data.subCourses !== undefined && { subCourses: data.subCourses })
       }
     });
     revalidatePath(`/admin/courses/${courseId}`);
@@ -68,7 +79,7 @@ export async function deleteCourse(courseId: string) {
   await requireAdminRoute();
 
   try {
-    const appCount = await prisma.application.count({ where: { courseId } });
+    const appCount = await prisma.application.count({ where: { courseId, deletedAt: null } });
     if (appCount > 0) {
       return { success: false, error: `Cannot delete: this course has ${appCount} existing application(s). Close it instead.` };
     }

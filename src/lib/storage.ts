@@ -58,3 +58,66 @@ export async function uploadFile(file: File): Promise<string> {
     uploadStream.end(buffer);
   });
 }
+export async function deleteFile(fileUrl: string): Promise<void> {
+  if (!fileUrl) return;
+
+  // Handle local storage deletion
+  if (fileUrl.startsWith("/uploads/")) {
+    const filePath = path.join(process.cwd(), "public", fileUrl);
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Local file deletion error:", error);
+      }
+    }
+    return;
+  }
+
+  // Handle Cloudinary deletion
+  if (isCloudinaryConfigured && fileUrl.includes("cloudinary.com")) {
+    try {
+      const publicId = extractPublicId(fileUrl);
+      if (publicId) {
+        await new Promise((resolve, reject) => {
+          cloudinary.uploader.destroy(publicId, (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          });
+        });
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Cloudinary file deletion error:", error);
+      }
+    }
+  }
+}
+
+function extractPublicId(url: string): string | null {
+  // Cloudinary URL format: https://res.cloudinary.com/[cloud_name]/[resource_type]/upload/v[version]/[folder]/[filename].[ext]
+  // We want "[folder]/[filename]"
+  try {
+    const parts = url.split("/");
+    const uploadIndex = parts.indexOf("upload");
+    if (uploadIndex === -1) return null;
+
+    // The public ID starts after the version (v[digits])
+    // Or directly after "upload" if no version is present
+    let publicIdWithExt = "";
+    if (parts[uploadIndex + 1].startsWith("v") && /^\d+$/.test(parts[uploadIndex + 1].substring(1))) {
+      publicIdWithExt = parts.slice(uploadIndex + 2).join("/");
+    } else {
+      publicIdWithExt = parts.slice(uploadIndex + 1).join("/");
+    }
+
+    // Remove extension
+    const lastDotIndex = publicIdWithExt.lastIndexOf(".");
+    if (lastDotIndex !== -1) {
+      return publicIdWithExt.substring(0, lastDotIndex);
+    }
+    return publicIdWithExt;
+  } catch {
+    return null;
+  }
+}

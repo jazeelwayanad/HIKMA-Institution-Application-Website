@@ -1,0 +1,168 @@
+"use client";
+
+import { useState } from "react";
+import { FileText, Image as ImageIcon, ExternalLink, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+type MediaFile = {
+  url: string;
+  label: string;
+  type: 'image' | 'file';
+  applicantName: string;
+  appNo: string;
+};
+
+export function ApplicationDataClient({ formData, applicantName, appNo, variant = 'admin' }: { 
+  formData: Record<string, any>, 
+  applicantName: string, 
+  appNo: string,
+  variant?: 'admin' | 'student'
+}) {
+  const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
+
+  const entries = Object.entries(formData).filter(([key]) => key !== 'adminNote');
+
+  return (
+    <>
+      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        {entries.map(([key, value]: [string, any]) => {
+          const label = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
+          const lowerKey = key.toLowerCase();
+          const isUrl = typeof value === 'string' && (value.startsWith('/uploads/') || (value as string).includes('http'));
+          const isImage = isUrl && (
+            /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(value as string) ||
+            lowerKey.includes('photo') || lowerKey.includes('pic') || lowerKey.includes('image')
+          );
+
+          if (variant === 'student') {
+            return (
+              <div key={key} className={`rounded-xl bg-white border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-4 relative overflow-hidden group hover:border-indigo-200 transition-colors ${isUrl ? 'md:col-span-2' : ''}`}>
+                <div className="absolute left-0 top-0 h-full w-1 bg-slate-100 group-hover:bg-indigo-400 transition-colors"></div>
+                <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-3">{label}</dt>
+                <dd className="pl-3 text-slate-900 font-medium">
+                  {isImage ? (
+                    <div className="flex items-start gap-4 mt-2">
+                      <div 
+                        className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-indigo-100 shadow-sm flex-shrink-0 bg-slate-50 cursor-pointer hover:border-indigo-300 transition-colors"
+                        onClick={() => setPreviewFile({ url: value, label, type: 'image', applicantName, appNo })}
+                      >
+                        <img src={value as string} alt={label} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex flex-col gap-2 justify-center">
+                        <button 
+                          onClick={() => setPreviewFile({ url: value, label, type: 'image', applicantName, appNo })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors text-xs font-semibold"
+                        >
+                          Preview Image
+                        </button>
+                      </div>
+                    </div>
+                  ) : isUrl ? (
+                    <button 
+                      onClick={() => setPreviewFile({ url: value, label, type: 'file', applicantName, appNo })}
+                      className="text-indigo-600 hover:text-indigo-800 hover:underline break-all text-left"
+                    >
+                      Preview Document
+                    </button>
+                  ) : (
+                    <span className="whitespace-pre-wrap">{String(value)}</span>
+                  )}
+                </dd>
+              </div>
+            );
+          }
+
+          return (
+            <div key={key} className={isUrl ? "md:col-span-2" : ""}>
+              <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{label}</dt>
+              <dd className="text-slate-900 font-medium whitespace-pre-wrap">
+                {isImage ? (
+                  <div className="flex items-start gap-4">
+                    <div 
+                      className="w-28 h-28 rounded-xl overflow-hidden border-2 border-indigo-100 shadow-sm bg-slate-50 flex-shrink-0 cursor-pointer hover:border-indigo-300 transition-colors"
+                      onClick={() => setPreviewFile({ url: value, label, type: 'image', applicantName, appNo })}
+                    >
+                      <img src={value as string} alt={label} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex flex-col gap-2 justify-center">
+                      <button 
+                        onClick={() => setPreviewFile({ url: value, label, type: 'image', applicantName, appNo })}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm font-semibold"
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                        Preview Image
+                      </button>
+                    </div>
+                  </div>
+                ) : isUrl ? (
+                  <button 
+                    onClick={() => setPreviewFile({ url: value, label, type: 'file', applicantName, appNo })}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm font-semibold"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Preview Document
+                  </button>
+                ) : (
+                  String(value) || <span className="text-slate-300 italic">Not provided</span>
+                )}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewFile} onOpenChange={(open) => !open && setPreviewFile(null)}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 overflow-hidden bg-slate-950 border-slate-800">
+          <DialogHeader className="p-4 bg-slate-900 border-b border-slate-800 flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                 {previewFile?.type === 'image' ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+               </div>
+               <div>
+                <DialogTitle className="text-white text-base">{previewFile?.label}</DialogTitle>
+                <p className="text-slate-400 text-xs mt-0.5">{previewFile?.applicantName} • {previewFile?.appNo}</p>
+               </div>
+            </div>
+            <div className="flex items-center gap-2 pr-8">
+              <a 
+                href={previewFile?.url} 
+                download 
+                target="_blank"
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Download"
+              >
+                <Download className="w-5 h-5" />
+              </a>
+              <a 
+                href={previewFile?.url} 
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Open in new tab"
+              >
+                <ExternalLink className="w-5 h-5" />
+              </a>
+            </div>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+            {previewFile?.type === 'image' ? (
+              <img 
+                src={previewFile.url} 
+                alt={previewFile.label} 
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" 
+              />
+            ) : (
+              <iframe 
+                src={previewFile?.url} 
+                className="w-full h-full bg-white rounded-lg shadow-2xl"
+                title="File Preview"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

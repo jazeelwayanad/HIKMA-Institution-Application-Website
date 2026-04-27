@@ -33,6 +33,9 @@ model Course {
   
   appNumberPrefix   String @default("APP-")
   currentAppCounter Int    @default(1000)
+
+  requiredDocuments Json? // [{ name: string, required: boolean }]
+  subCourses        Json? // [string]
 }
 
 
