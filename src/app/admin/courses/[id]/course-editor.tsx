@@ -17,6 +17,7 @@ type CourseEditorProps = {
   fee?: number | null;
   appNumberPrefix: string;
   currentAppCounter: number;
+  appNumberDigits: number;
   requiredDocuments?: any;
   subCourses?: any;
 };
@@ -29,6 +30,7 @@ export function CourseEditorClient({
   fee,
   appNumberPrefix,
   currentAppCounter,
+  appNumberDigits,
   requiredDocuments,
   subCourses: initialSubCourses,
 }: CourseEditorProps) {
@@ -38,6 +40,7 @@ export function CourseEditorClient({
   const [courseFee, setCourseFee] = useState(String(fee ?? 0));
   const [prefix, setPrefix] = useState(appNumberPrefix);
   const [counter, setCounter] = useState(String(currentAppCounter));
+  const [digits, setDigits] = useState(String(appNumberDigits));
   const [status, setStatus] = useState<string>(currentStatus);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
@@ -86,6 +89,7 @@ export function CourseEditorClient({
       status: status,
       appNumberPrefix: prefix,
       currentAppCounter: parseInt(counter) || 0,
+      appNumberDigits: parseInt(digits) || 0,
       requiredDocuments: docs,
       subCourses: subCourses
     });
@@ -100,15 +104,14 @@ export function CourseEditorClient({
   };
 
   return (
-    <div className="space-y-8">
+    <><div className="space-y-8">
       <div className="space-y-6">
         <div className="space-y-2">
           <Label className="text-slate-700">Course Name</Label>
-          <Input 
-            value={courseTitle} 
-            onChange={e => setCourseTitle(e.target.value)} 
-            className="text-base font-medium h-11 border-slate-200" 
-          />
+          <Input
+            value={courseTitle}
+            onChange={e => setCourseTitle(e.target.value)}
+            className="text-base font-medium h-11 border-slate-200" />
         </div>
 
         <div className="space-y-2">
@@ -117,8 +120,7 @@ export function CourseEditorClient({
             value={courseDesc}
             onChange={e => setCourseDesc(e.target.value)}
             rows={4}
-            className="flex w-full rounded-md border border-slate-200 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 resize-none"
-          />
+            className="flex w-full rounded-md border border-slate-200 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 resize-none" />
         </div>
 
         <div className="space-y-2">
@@ -128,9 +130,9 @@ export function CourseEditorClient({
           </Label>
           <Select value={status} onValueChange={(val) => setStatus(val || "DRAFT")}>
             <SelectTrigger className="w-full bg-slate-50 border-slate-200 h-11 px-4 text-slate-700">
-                <SelectValue placeholder="Select course status...">
-                  {status === "DRAFT" ? "Draft (Hidden)" : status === "OPEN" ? "Open (Accepting Applications)" : "Closed (Not Accepting Applications)"}
-                </SelectValue>
+              <SelectValue placeholder="Select course status...">
+                {status === "DRAFT" ? "Draft (Hidden)" : status === "OPEN" ? "Open (Accepting Applications)" : "Closed (Not Accepting Applications)"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="DRAFT" className="font-medium">Draft (Hidden)</SelectItem>
@@ -144,13 +146,12 @@ export function CourseEditorClient({
         <div className="space-y-4 pt-4 border-t border-slate-100">
           <Label className="text-slate-700 font-bold text-base">Subcourses</Label>
           <div className="flex gap-2">
-            <Input 
-              value={newSubCourse} 
-              onChange={e => setNewSubCourse(e.target.value)} 
-              placeholder="Enter subcourse name (e.g. Science)" 
+            <Input
+              value={newSubCourse}
+              onChange={e => setNewSubCourse(e.target.value)}
+              placeholder="Enter subcourse name (e.g. Science)"
               className="h-11"
-              onKeyDown={e => e.key === 'Enter' && addSubCourse()}
-            />
+              onKeyDown={e => e.key === 'Enter' && addSubCourse()} />
             <Button type="button" onClick={addSubCourse} variant="secondary" className="h-11">
               <Plus className="w-4 h-4 mr-2" /> Add
             </Button>
@@ -172,13 +173,12 @@ export function CourseEditorClient({
         <div className="space-y-4 pt-4 border-t border-slate-100">
           <Label className="text-slate-700 font-bold text-base">Required Documents</Label>
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 items-center">
-            <Input 
-              value={newDocName} 
-              onChange={e => setNewDocName(e.target.value)} 
-              placeholder="e.g. SSLC Certificate" 
+            <Input
+              value={newDocName}
+              onChange={e => setNewDocName(e.target.value)}
+              placeholder="e.g. SSLC Certificate"
               className="h-11"
-              onKeyDown={e => e.key === 'Enter' && addDoc()}
-            />
+              onKeyDown={e => e.key === 'Enter' && addDoc()} />
             <div className="flex items-center gap-2 px-3 h-11 border border-slate-200 rounded-md bg-slate-50 cursor-pointer" onClick={() => setNewDocRequired(!newDocRequired)}>
               {newDocRequired ? <CheckCircle2 className="w-4 h-4 text-indigo-600" /> : <Circle className="w-4 h-4 text-slate-300" />}
               <span className="text-sm font-medium text-slate-700">Required</span>
@@ -205,39 +205,49 @@ export function CourseEditorClient({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
           <div className="space-y-2">
             <Label className="text-slate-700">Application Number Prefix</Label>
-            <Input 
-              value={prefix} 
-              onChange={e => setPrefix(e.target.value)} 
+            <Input
+              value={prefix}
+              onChange={e => setPrefix(e.target.value)}
               className="text-base font-medium h-11 border-slate-200"
-              placeholder="e.g. APP-"
-            />
-            <p className="text-xs text-slate-500">Prefix for applications (e.g. TTC-1001)</p>
+              placeholder="e.g. APP" />
+            <p className="text-xs text-slate-500">Prefix for applications (e.g. TTC)</p>
           </div>
+
           <div className="space-y-2">
             <Label className="text-slate-700">Current Application Counter</Label>
-            <Input 
+            <Input
               type="number"
-              value={counter} 
-              onChange={e => setCounter(e.target.value)} 
-              className="text-base font-medium h-11 border-slate-200" 
-            />
-            <p className="text-xs text-slate-500">The next application will be {(parseInt(counter) || 0) + 1}</p>
+              value={counter}
+              onChange={e => setCounter(e.target.value)}
+              className="text-base font-medium h-11 border-slate-200" />
           </div>
+          <div className="space-y-2 ">
+            <Label className="text-slate-700">Counting Number Digits</Label>
+            <Input
+              type="number"
+              min="0"
+              value={digits}
+              onChange={e => setDigits(e.target.value)}
+              className="text-base font-medium h-11 border-slate-200" />
+            <p className="text-xs text-slate-500">Padding length (0 for no padding, e.g. 4 makes 0001)</p>
+          </div>
+          <p className="text-xs text-slate-500">
+            The next application will be {prefix.replace(/-+$/, '') ? `${prefix.replace(/-+$/, '')}-` : ''}{String((parseInt(counter) || 0) + 1).padStart(parseInt(digits) || 0, '0')}
+          </p>
         </div>
       </div>
-
-      <div className="pt-4 flex justify-end border-t border-slate-100">
-        <Button 
-          onClick={handleSave} 
-          disabled={saveState === "saving"} 
+    </div><div className="pt-4 flex justify-end border-t border-slate-100">
+        <Button
+          onClick={handleSave}
+          disabled={saveState === "saving"}
           className="bg-slate-900 hover:bg-slate-800 text-white px-10 h-11"
         >
           {saveState === "saving" ? "Saving..." : saveState === "saved" ? "✓ Saved!" : "Save Course Settings"}
         </Button>
-      </div>
-    </div>
+      </div></>
+
   );
 }

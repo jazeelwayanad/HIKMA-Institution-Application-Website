@@ -47,6 +47,7 @@ export async function updateCourseDetails(courseId: string, data: {
   status?: string, 
   appNumberPrefix?: string, 
   currentAppCounter?: number,
+  appNumberDigits?: number,
   requiredDocuments?: any,
   subCourses?: any
 }) {
@@ -62,6 +63,7 @@ export async function updateCourseDetails(courseId: string, data: {
         ...(data.status && { status: data.status }),
         ...(data.appNumberPrefix !== undefined && { appNumberPrefix: data.appNumberPrefix }),
         ...(data.currentAppCounter !== undefined && { currentAppCounter: data.currentAppCounter }),
+        ...(data.appNumberDigits !== undefined && { appNumberDigits: data.appNumberDigits }),
         ...(data.requiredDocuments !== undefined && { requiredDocuments: data.requiredDocuments }),
         ...(data.subCourses !== undefined && { subCourses: data.subCourses })
       }

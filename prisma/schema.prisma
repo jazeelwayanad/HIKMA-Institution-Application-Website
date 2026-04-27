@@ -26,6 +26,7 @@ model Course {
   updatedAt         DateTime      @updatedAt
   appNumberPrefix   String        @default("APP-")
   currentAppCounter Int           @default(1000)
+  appNumberDigits   Int           @default(4)
   requiredDocuments Json?
   subCourses        Json?
   applications      Application[]

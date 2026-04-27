@@ -99,7 +99,12 @@ export async function submitApplication(formData: FormData) {
           data: { currentAppCounter: nextId }
         });
 
-        return `${course.appNumberPrefix}${nextId}`;
+        const paddedId = course.appNumberDigits > 0 
+          ? String(nextId).padStart(course.appNumberDigits, '0') 
+          : String(nextId);
+          
+        const cleanPrefix = course.appNumberPrefix.replace(/-+$/, '');
+        return cleanPrefix ? `${cleanPrefix}-${paddedId}` : paddedId;
       });
 
       // Save Application

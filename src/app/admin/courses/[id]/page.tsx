@@ -85,6 +85,7 @@ export default async function CourseBuilder({ params }: { params: Promise<{ id: 
           fee={course.fee}
           appNumberPrefix={course.appNumberPrefix}
           currentAppCounter={course.currentAppCounter}
+          appNumberDigits={course.appNumberDigits}
           requiredDocuments={course.requiredDocuments}
           subCourses={course.subCourses}
         />
