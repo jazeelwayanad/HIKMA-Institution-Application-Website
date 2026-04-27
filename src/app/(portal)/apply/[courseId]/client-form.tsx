@@ -79,9 +79,31 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+  const validateFileSize = (file: File) => {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      alert(`File "${file.name}" is too large (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`);
+      return false;
+    }
+    return true;
+  };
+
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file.");
+        e.target.value = "";
+        setPhotoPreview(null);
+        return;
+      }
+      if (!validateFileSize(file)) {
+        e.target.value = "";
+        setPhotoPreview(null);
+        return;
+      }
       const url = URL.createObjectURL(file);
       setPhotoPreview(url);
     } else {
@@ -223,7 +245,10 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
       <div className="px-6 md:px-12 pb-8 space-y-4">
         
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-2">
-          <Label htmlFor="photo" className="text-slate-700 font-medium mt-2">Passport Size Photo</Label>
+          <div className="space-y-1">
+            <Label htmlFor="photo" className="text-slate-700 font-medium">Passport Size Photo</Label>
+            <p className="text-[10px] text-slate-400 leading-tight">Image format only. Max 5MB.</p>
+          </div>
           <div className="relative w-32 h-40">
              <label htmlFor="photo" className="cursor-pointer flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-slate-300 rounded-lg hover:border-indigo-400 bg-slate-50 transition-colors overflow-hidden group">
                {photoPreview ? (
@@ -446,6 +471,10 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
+                                if (!validateFileSize(file)) {
+                                  e.target.value = "";
+                                  return;
+                                }
                                 setDocPreviews(prev => ({
                                   ...prev,
                                   [key]: { name: file.name, url: URL.createObjectURL(file) }
