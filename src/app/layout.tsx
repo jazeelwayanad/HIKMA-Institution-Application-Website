@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     description: "Secure and easy course applications for AL-WARDA WOMEN'S COLLEGE.",
     type: "website",
   },
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
