@@ -26,6 +26,7 @@ export async function adminSubmitApplication(formData: FormData) {
 
     const applicantData: Record<string, any> = { ...existingData };
     const uploadPromises: Promise<{key: string, url: string}>[] = [];
+    const deletePromises: Promise<void>[] = [];
 
     for (const [key, value] of Array.from(formData.entries())) {
       if (["courseId", "editId", "declaration_agreed"].includes(key)) continue;
@@ -39,7 +40,7 @@ export async function adminSubmitApplication(formData: FormData) {
         if (fileValue.size > 0 && fileValue.name !== "undefined") {
           // If there's an existing file for this key, delete it
           if (applicantData[key]) {
-            await deleteFile(applicantData[key]);
+            deletePromises.push(deleteFile(applicantData[key]));
           }
           // Collect upload promise
           uploadPromises.push(
@@ -49,14 +50,18 @@ export async function adminSubmitApplication(formData: FormData) {
       } else {
         // If it's a new pre-uploaded URL replacing an old one, delete the old file
         if (typeof value === "string" && value.startsWith("http") && applicantData[key] && applicantData[key] !== value && applicantData[key].startsWith("http")) {
-          await deleteFile(applicantData[key]);
+          deletePromises.push(deleteFile(applicantData[key]));
         }
         applicantData[key] = value;
       }
     }
 
-    // Wait for all uploads to complete in parallel
-    const uploadedFiles = await Promise.all(uploadPromises);
+    // Wait for all uploads and deletions to complete in parallel
+    const [uploadedFiles] = await Promise.all([
+      Promise.all(uploadPromises),
+      Promise.all(deletePromises)
+    ]);
+
     uploadedFiles.forEach(({ key, url }) => {
       applicantData[key] = url;
     });
