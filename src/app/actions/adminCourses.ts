@@ -86,6 +86,9 @@ export async function deleteCourse(courseId: string) {
       return { success: false, error: `Cannot delete: this course has ${appCount} existing application(s). Close it instead.` };
     }
 
+    // Delete any soft-deleted applications first to prevent foreign key constraint errors
+    await prisma.application.deleteMany({ where: { courseId } });
+
     await prisma.course.delete({ where: { id: courseId } });
     revalidatePath("/admin/courses");
     return { success: true };

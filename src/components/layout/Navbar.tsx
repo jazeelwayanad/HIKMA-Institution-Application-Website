@@ -11,7 +11,7 @@ export function Navbar() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-slate-200 shadow-sm">
               <Image
-                src="/logo.png"
+                src="/logo.webp"
                 alt="Al-Warda Women's College Logo"
                 fill
                 className="object-cover"

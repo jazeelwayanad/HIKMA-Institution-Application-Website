@@ -111,7 +111,7 @@ export default async function PrintApplicationPage({ params }: { params: Promise
               {/* Logo Recreation */}
               <div className="w-[100px] h-[100px] bg-white rounded-[10px] shadow-sm flex flex-col items-center justify-center p-2 border border-gray-300">
                 <Image
-                  src="/logo.png"
+                  src="/logo.webp"
                   alt="Logo"
                   width={120}
                   height={120}

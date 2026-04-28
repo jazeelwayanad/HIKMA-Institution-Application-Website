@@ -37,12 +37,15 @@ export async function uploadFile(file: File): Promise<string> {
     return `/uploads/${fileName}`;
   }
 
+  const isImage = file.type.startsWith("image/");
+
   // Upload to Cloudinary
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: "application_portal",
         resource_type: "auto",
+        format: isImage ? "webp" : undefined,
       },
       (error, result) => {
         if (error) {
