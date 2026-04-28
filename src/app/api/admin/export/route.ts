@@ -36,8 +36,11 @@ export async function GET(req: NextRequest) {
         };
 
         // Attempt to extract dynamic data cleanly
-        const parsedData = app.data ? (app.data as Record<string, any>) : {};
+        const parsedData = app.data ? { ...(app.data as Record<string, any>) } : {};
         
+        if (parsedData.course_selected && app.course) {
+          parsedData.course_selected = app.course.title;
+        }
         // Merge without overwriting base
         return {
           ...baseData,

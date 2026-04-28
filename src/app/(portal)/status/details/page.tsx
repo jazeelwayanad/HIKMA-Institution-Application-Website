@@ -28,8 +28,12 @@ export default async function ApplicationDetailsPage() {
   const canEdit = application.isEditable || settings?.globalEditSubmissions;
 
   const submittedData = typeof application.data === 'object' && application.data !== null 
-    ? (application.data as Record<string, any>) 
+    ? { ...(application.data as Record<string, any>) } 
     : {};
+
+  if (application.course) {
+    submittedData.course_selected = application.course.title;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">

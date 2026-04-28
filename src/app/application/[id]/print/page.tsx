@@ -171,7 +171,10 @@ export default async function PrintApplicationPage({ params }: { params: Promise
             <FormField label="Madrasa Qualification" value={getField("madrasa_qualification")} />
             <FormField label="Last School Name" value={getField("last_school_name")} />
             <FormField label="SSLC/HSE Reg. Number" value={getField("sslc_hse_reg_number")} />
-            <FormField label="Course Selected" value={getField("course_selected") || application.course.title} />
+            <FormField label="Course Selected" value={application.course?.title || getField("course_selected")} />
+            {getField("sub_course") && (
+              <FormField label="Sub Course" value={getField("sub_course")} />
+            )}
             <FormField label="Remarks" value={getField("remarks")} />
 
             {/* Footer Note */}

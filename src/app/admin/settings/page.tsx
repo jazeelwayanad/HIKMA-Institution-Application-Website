@@ -32,10 +32,13 @@ export default async function SettingsManager() {
     const idStr = formData.get("id") as string;
     const globalEditSubmissions = formData.get("globalEditSubmissions") === "on";
 
+    const fileUploadSizeLimitMB = parseInt(formData.get("fileUploadSizeLimitMB") as string, 10) || 5;
+    
     await prisma.systemSettings.update({
       where: { id: parseInt(idStr, 10) },
       data: {
         globalEditSubmissions,
+        fileUploadSizeLimitMB,
       }
     });
 
@@ -88,7 +91,22 @@ export default async function SettingsManager() {
                       <Label htmlFor="globalEdit" className="text-slate-700 font-semibold cursor-pointer text-base">Allow Application Edits</Label>
                       <p className="text-sm text-slate-500 mt-1">When enabled, clients can edit their submitted applications from the portal.</p>
                     </div>
-                 </div>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fileLimit" className="text-slate-700 font-semibold text-base">File Upload Size Limit (MB)</Label>
+                      <Input 
+                        id="fileLimit" 
+                        name="fileUploadSizeLimitMB" 
+                        type="number" 
+                        min="1" 
+                        defaultValue={settings.fileUploadSizeLimitMB}
+                        className="w-full sm:w-32 h-11 border-slate-200"
+                      />
+                      <p className="text-sm text-slate-500 mt-1">Maximum allowed file size for photos and documents.</p>
+                    </div>
+                  </div>
               </div>
 
               <div className="pt-4 mt-auto flex justify-end">

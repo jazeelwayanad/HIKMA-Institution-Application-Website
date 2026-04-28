@@ -48,6 +48,8 @@ export default async function CourseApplyPage({
     }
   }
 
+  const settings = await prisma.systemSettings.findFirst();
+
   return (
     <div className="container mx-auto max-w-4xl py-12 px-4">
       <div className="mb-8 text-center">
@@ -65,6 +67,7 @@ export default async function CourseApplyPage({
           editId={editId}
           requiredDocuments={course.requiredDocuments}
           subCourses={course.subCourses}
+          fileUploadSizeLimitMB={settings?.fileUploadSizeLimitMB || 5}
         />
       </div>
     </div>

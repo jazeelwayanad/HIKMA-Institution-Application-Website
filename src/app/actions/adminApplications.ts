@@ -25,6 +25,7 @@ export async function adminSubmitApplication(formData: FormData) {
         : {};
 
     const applicantData: Record<string, any> = { ...existingData };
+    const uploadPromises: Promise<{key: string, url: string}>[] = [];
 
     for (const [key, value] of Array.from(formData.entries())) {
       if (["courseId", "editId", "declaration_agreed"].includes(key)) continue;
@@ -40,13 +41,21 @@ export async function adminSubmitApplication(formData: FormData) {
           if (applicantData[key]) {
             await deleteFile(applicantData[key]);
           }
-          const url = await uploadFile(fileValue);
-          applicantData[key] = url;
+          // Collect upload promise
+          uploadPromises.push(
+            uploadFile(fileValue).then(url => ({ key, url }))
+          );
         }
       } else {
         applicantData[key] = value;
       }
     }
+
+    // Wait for all uploads to complete in parallel
+    const uploadedFiles = await Promise.all(uploadPromises);
+    uploadedFiles.forEach(({ key, url }) => {
+      applicantData[key] = url;
+    });
 
     const updateData: any = { data: applicantData };
     if (dob && !isNaN(dob.getTime())) updateData.dob = dob;

@@ -45,10 +45,11 @@ export async function submitApplication(formData: FormData) {
     }
 
     const applicantData: Record<string, any> = { ...existingData };
+    const uploadPromises: Promise<{key: string, url: string}>[] = [];
 
     // Extract all fields from FormData
     for (const [key, value] of Array.from(formData.entries())) {
-      if (key === "courseId" || key === "editId") continue; // We already handled this
+      if (key === "courseId" || key === "editId") continue;
       
       const isFile = typeof value === "object" && value !== null && "size" in value && "name" in value;
       
@@ -59,13 +60,21 @@ export async function submitApplication(formData: FormData) {
           if (applicantData[key]) {
             await deleteFile(applicantData[key]);
           }
-          const url = await uploadFile(fileValue);
-          applicantData[key] = url;
+          // Collect upload promise
+          uploadPromises.push(
+            uploadFile(fileValue).then(url => ({ key, url }))
+          );
         }
       } else {
         applicantData[key] = value;
       }
     }
+
+    // Wait for all uploads to complete in parallel
+    const uploadedFiles = await Promise.all(uploadPromises);
+    uploadedFiles.forEach(({ key, url }) => {
+      applicantData[key] = url;
+    });
 
 
 

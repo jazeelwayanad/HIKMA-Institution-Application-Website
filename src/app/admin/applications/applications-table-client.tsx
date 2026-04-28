@@ -126,6 +126,11 @@ export function ApplicationsTableClient({
                 </td>
                 <td className="px-6 py-4 align-middle text-slate-700 font-medium">
                   {app.course.title}
+                  {app.data?.sub_course && (
+                    <p className="text-[10px] text-indigo-500 font-bold uppercase mt-0.5 tracking-wider">
+                      {app.data.sub_course}
+                    </p>
+                  )}
                 </td>
                 <td className="px-6 py-4 align-middle">
                   <InlineStatusDropdown

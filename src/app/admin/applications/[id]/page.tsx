@@ -22,7 +22,10 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
   });
 
   const statusMeta = statuses.find((s: typeof statuses[0]) => s.value === application.status);
-  const formData = application.data as Record<string, any>;
+  const formData = { ...(application.data as Record<string, any>) };
+  if (application.course) {
+    formData.course_selected = application.course.title;
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20">
@@ -81,7 +84,14 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
                 </div>
                 <div>
                   <p className="text-slate-400 text-xs">Program</p>
-                  <p className="font-semibold text-slate-700">{application.course.title}</p>
+                  <p className="font-semibold text-slate-700">
+                    {application.course.title}
+                    {formData.sub_course && (
+                      <span className="block text-[10px] text-indigo-600 font-bold uppercase tracking-wider mt-0.5">
+                        {formData.sub_course}
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>

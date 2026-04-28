@@ -20,11 +20,49 @@ export function ApplicationDataClient({ formData, applicantName, appNo, variant 
 }) {
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
 
-  const entries = Object.entries(formData).filter(([key]) => key !== 'adminNote');
+  const orderedKeys = [
+    "photo",
+    "full_name",
+    "dob",
+    "father_name",
+    "mother_name",
+    "mother_mobile",
+    "guardian_name",
+    "guardian_relation",
+    "guardian_mobile",
+    "house_name",
+    "place",
+    "post_office",
+    "district",
+    "whatsapp_number",
+    "marital_status",
+    "madrasa_qualification",
+    "last_school_name",
+    "sslc_hse_reg_number",
+    "course_selected",
+    "sub_course",
+    "remarks"
+  ];
+
+  const entries = Object.entries(formData).filter(([key]) => key !== 'adminNote').sort(([keyA], [keyB]) => {
+    const indexA = orderedKeys.indexOf(keyA);
+    const indexB = orderedKeys.indexOf(keyB);
+    
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+    
+    // Group documents at the end if not explicitly ordered
+    if (keyA.startsWith('doc_') && !keyB.startsWith('doc_')) return 1;
+    if (!keyA.startsWith('doc_') && keyB.startsWith('doc_')) return -1;
+    
+    return keyA.localeCompare(keyB);
+  });
+
 
   return (
     <>
-      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+      <dl className={variant === 'student' ? "flex flex-col gap-2" : "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6"}>
         {entries.map(([key, value]: [string, any]) => {
           const label = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
           const lowerKey = key.toLowerCase();
@@ -36,19 +74,20 @@ export function ApplicationDataClient({ formData, applicantName, appNo, variant 
 
           if (variant === 'student') {
             return (
-              <div key={key} className={`rounded-xl bg-white border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-4 relative overflow-hidden group hover:border-indigo-200 transition-colors ${isUrl ? 'md:col-span-2' : ''}`}>
-                <div className="absolute left-0 top-0 h-full w-1 bg-slate-100 group-hover:bg-indigo-400 transition-colors"></div>
-                <dt className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-3">{label}</dt>
-                <dd className="pl-3 text-slate-900 font-medium">
+              <div key={key} className="flex flex-col sm:flex-row sm:items-start mb-2">
+                <dt className="w-full sm:w-[220px] shrink-0 text-[13px] font-medium text-[#2d3748] uppercase tracking-wide mb-1 sm:mb-0 sm:mt-1.5">
+                  {label}
+                </dt>
+                <dd className="flex-1 min-h-[30px] border border-[#a0aec0] rounded-[6px] bg-white px-3 py-1.5 flex items-center text-[14px] font-medium text-[#1a202c] shadow-sm break-words overflow-hidden">
                   {isImage ? (
-                    <div className="flex items-start gap-4 mt-2">
+                    <div className="flex items-start gap-4">
                       <div 
-                        className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-indigo-100 shadow-sm flex-shrink-0 bg-slate-50 cursor-pointer hover:border-indigo-300 transition-colors"
+                        className="relative w-16 h-16 rounded-md overflow-hidden border border-slate-200 shadow-sm flex-shrink-0 bg-slate-50 cursor-pointer hover:border-indigo-300 transition-colors"
                         onClick={() => setPreviewFile({ url: value, label, type: 'image', applicantName, appNo })}
                       >
                         <img src={value as string} alt={label} className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex flex-col gap-2 justify-center">
+                      <div className="flex flex-col justify-center h-16">
                         <button 
                           onClick={() => setPreviewFile({ url: value, label, type: 'image', applicantName, appNo })}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors text-xs font-semibold"
@@ -60,7 +99,7 @@ export function ApplicationDataClient({ formData, applicantName, appNo, variant 
                   ) : isUrl ? (
                     <button 
                       onClick={() => setPreviewFile({ url: value, label, type: 'file', applicantName, appNo })}
-                      className="text-indigo-600 hover:text-indigo-800 hover:underline break-all text-left"
+                      className="text-indigo-600 hover:text-indigo-800 hover:underline break-all text-left font-semibold text-[13px]"
                     >
                       Preview Document
                     </button>

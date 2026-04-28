@@ -28,6 +28,8 @@ export default async function ApplicationEditPage({ params }: { params: Promise<
     dob: application.dob ? application.dob.toISOString().split('T')[0] : undefined,
   };
 
+  const settings = await prisma.systemSettings.findFirst();
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-20">
       <div className="flex items-center gap-4">
@@ -50,6 +52,7 @@ export default async function ApplicationEditPage({ params }: { params: Promise<
           availableCourses={allCourses}
           requiredDocuments={application.course.requiredDocuments}
           subCourses={application.course.subCourses}
+          fileUploadSizeLimitMB={settings?.fileUploadSizeLimitMB || 5}
         />
       </div>
     </div>

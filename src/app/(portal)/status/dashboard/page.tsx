@@ -142,6 +142,17 @@ export default async function StatusDashboard() {
                   </p>
                 </div>
                 <div>
+                  <p className="text-xs text-slate-500 font-medium">Applied Course</p>
+                  <p className="font-bold text-slate-900 text-lg">
+                    {application.course.title}
+                    {submittedData.sub_course && (
+                      <span className="block text-xs text-indigo-600 font-bold uppercase tracking-wider mt-1 bg-indigo-50 px-2 py-0.5 rounded-md w-fit">
+                        {submittedData.sub_course}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div>
                   <p className="text-xs text-slate-500 font-medium">Mobile Number</p>
                   <p className="font-bold text-slate-900 text-lg">{submittedData.whatsapp_number || submittedData.mobile_number || "N/A"}</p>
                 </div>

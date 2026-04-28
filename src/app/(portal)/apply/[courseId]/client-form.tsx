@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { submitApplication } from "@/app/actions/application";
 import { adminSubmitApplication } from "@/app/actions/adminApplications";
 
-export function ApplicationFormClient({ courseId, courseTitle, initialData, editId, isAdmin, availableCourses, requiredDocuments, subCourses }: {
+export function ApplicationFormClient({ courseId, courseTitle, initialData, editId, isAdmin, availableCourses, requiredDocuments, subCourses, fileUploadSizeLimitMB }: {
   courseId: string,
   courseTitle?: string,
   initialData?: Record<string, any>,
@@ -18,7 +18,8 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
   isAdmin?: boolean,
   availableCourses?: { id: string; title: string }[],
   requiredDocuments?: any,
-  subCourses?: any
+  subCourses?: any,
+  fileUploadSizeLimitMB?: number
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -79,7 +80,7 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_MB = fileUploadSizeLimitMB || 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
   const validateFileSize = (file: File) => {
@@ -247,7 +248,7 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-2">
           <div className="space-y-1">
             <Label htmlFor="photo" className="text-slate-700 font-medium">Passport Size Photo</Label>
-            <p className="text-[10px] text-slate-400 leading-tight">Image format only. Max 5MB.</p>
+            <p className="text-[10px] text-slate-400 leading-tight">Image format only. Max {MAX_FILE_SIZE_MB}MB.</p>
           </div>
           <div className="relative w-32 h-40">
              <label htmlFor="photo" className="cursor-pointer flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-slate-300 rounded-lg hover:border-indigo-400 bg-slate-50 transition-colors overflow-hidden group">
@@ -462,7 +463,7 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
                             <p className={`text-sm font-semibold truncate ${preview ? 'text-emerald-700' : 'text-slate-600'}`}>
                               {preview ? preview.name : `Click to upload ${doc.name}`}
                             </p>
-                            <p className="text-[11px] text-slate-400">PDF, JPG or PNG (Max 5MB)</p>
+                            <p className="text-[11px] text-slate-400">PDF, JPG or PNG (Max {MAX_FILE_SIZE_MB}MB)</p>
                           </div>
                           <input 
                             type="file" 
