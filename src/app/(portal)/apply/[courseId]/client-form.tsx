@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { ArrowLeft, Pencil, CheckCircle, FileText, Upload, X as CloseIcon } from "lucide-react";
+import { ArrowLeft, Pencil, CheckCircle, FileText, Upload, X as CloseIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,21 +28,30 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
   const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photo || null);
   const [activeCourseId, setActiveCourseId] = useState(courseId);
   const [reviewData, setReviewData] = useState<Record<string, string> | null>(null);
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploadedUrls, setUploadedUrls] = useState<Record<string, string>>({});
 
   // Document previews/filenames for review
   const [docPreviews, setDocPreviews] = useState<Record<string, { name: string, url: string | null }>>({});
 
   useEffect(() => {
     // If editing, populate docPreviews with initial document URLs if they exist
-    if (initialData && Array.isArray(requiredDocuments)) {
-      const initialPreviews: Record<string, { name: string, url: string | null }> = {};
-      requiredDocuments.forEach((doc: any) => {
-        const key = `doc_${doc.name.replace(/\s+/g, '_').toLowerCase()}`;
-        if (initialData[key]) {
-          initialPreviews[key] = { name: "Existing Document", url: initialData[key] };
-        }
-      });
-      setDocPreviews(initialPreviews);
+    if (initialData) {
+      const initialUrls: Record<string, string> = {};
+      if (initialData.photo) initialUrls["photo"] = initialData.photo;
+
+      if (Array.isArray(requiredDocuments)) {
+        const initialPreviews: Record<string, { name: string, url: string | null }> = {};
+        requiredDocuments.forEach((doc: any) => {
+          const key = `doc_${doc.name.replace(/\s+/g, '_').toLowerCase()}`;
+          if (initialData[key]) {
+            initialPreviews[key] = { name: "Existing Document", url: initialData[key] };
+            initialUrls[key] = initialData[key];
+          }
+        });
+        setDocPreviews(initialPreviews);
+      }
+      setUploadedUrls(initialUrls);
     }
   }, [initialData, requiredDocuments]);
 
@@ -91,6 +100,39 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
     return true;
   };
 
+  async function handleBackgroundUpload(file: File, key: string) {
+    if (!validateFileSize(file)) return;
+
+    // Capture previous URL before starting new upload
+    const previousUrl = uploadedUrls[key];
+
+    setUploading(prev => ({ ...prev, [key]: true }));
+    setErrorDetails(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    if (previousUrl) {
+      formData.append("previousUrl", previousUrl);
+    }
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const result = await response.json();
+      setUploadedUrls(prev => ({ ...prev, [key]: result.url }));
+    } catch (err) {
+      console.error("Background Upload Error:", err);
+      setErrorDetails(`Failed to upload ${key.replace(/_/g, ' ')}. Please try again.`);
+    } finally {
+      setUploading(prev => ({ ...prev, [key]: false }));
+    }
+  }
+
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
@@ -107,6 +149,7 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
       }
       const url = URL.createObjectURL(file);
       setPhotoPreview(url);
+      handleBackgroundUpload(file, "photo");
     } else {
       setPhotoPreview(null);
     }
@@ -215,11 +258,11 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
             <div className="p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200">{errorDetails}</div>
           )}
           <div className="pt-4 flex flex-col md:flex-row justify-end items-center gap-3 border-t border-slate-100">
-            <Button type="button" variant="outline" onClick={() => setReviewData(null)} disabled={isSubmitting} className="w-full md:w-auto h-11 px-8 gap-2">
+            <Button type="button" variant="outline" onClick={() => setReviewData(null)} disabled={isSubmitting || Object.values(uploading).some(v => v)} className="w-full md:w-auto h-11 px-8 gap-2">
               <Pencil className="w-4 h-4" /> Edit
             </Button>
-            <Button type="button" disabled={isSubmitting} onClick={() => formRef.current?.requestSubmit()} className="bg-[#2B4B8A] hover:bg-[#1E3A70] text-white rounded-md px-10 h-11 text-base font-semibold w-full md:w-auto">
-              {isSubmitting ? (isAdmin ? "Saving…" : "Submitting…") : (isAdmin ? "Confirm & Save Changes" : "Confirm & Submit")}
+            <Button type="button" disabled={isSubmitting || Object.values(uploading).some(v => v)} onClick={() => formRef.current?.requestSubmit()} className="bg-[#2B4B8A] hover:bg-[#1E3A70] text-white rounded-md px-10 h-11 text-base font-semibold w-full md:w-auto">
+              {isSubmitting ? (isAdmin ? "Saving…" : "Submitting…") : Object.values(uploading).some(v => v) ? "Uploading Files…" : (isAdmin ? "Confirm & Save Changes" : "Confirm & Submit")}
             </Button>
           </div>
         </div>
@@ -260,28 +303,41 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
                     <span className="text-xs font-semibold">Upload Photo</span>
                  </div>
                )}
+               {uploading["photo"] && (
+                 <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-20">
+                   <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                 </div>
+               )}
              </label>
              <input 
               type="file" 
               id="photo" 
-              name="photo" 
               accept="image/*" 
               required={!photoPreview} 
               onChange={handlePhotoChange}
               className="hidden" 
             />
+            {/* Hidden input to submit the pre-uploaded URL */}
+            <input type="hidden" name="photo" value={uploadedUrls["photo"] || ""} />
             {photoPreview && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   setPhotoPreview(null);
+                  setUploadedUrls(prev => {
+                    const next = { ...prev };
+                    delete next["photo"];
+                    return next;
+                  });
                   const fileInput = document.getElementById('photo') as HTMLInputElement;
                   if (fileInput) fileInput.value = '';
                 }}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center hover:bg-red-600 shadow-md z-10"
+                className="absolute -top-2.5 -right-2.5 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-[0_2px_10px_rgba(239,68,68,0.4)] z-30 transition-all active:scale-90 border-2 border-white"
                 title="Remove photo"
-              >✕</button>
+              >
+                <CloseIcon className="w-4 h-4" />
+              </button>
             )}
           </div>
         </div>
@@ -448,6 +504,9 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
               {requiredDocuments.map((doc: any, idx: number) => {
                 const key = `doc_${doc.name.replace(/\s+/g, '_').toLowerCase()}`;
                 const preview = docPreviews[key];
+                const isUploading = uploading[key];
+                const isUploaded = !!uploadedUrls[key];
+
                 return (
                   <div key={idx} className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-2">
                     <Label className="text-slate-700 font-medium mt-2">
@@ -455,37 +514,42 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
                     </Label>
                     <div className="space-y-2">
                       <div className="relative">
-                        <label className={`flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-all ${preview ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 hover:border-indigo-400 bg-slate-50'}`}>
-                          <div className={`p-2 rounded-full ${preview ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                            {preview ? <CheckCircle className="w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                        <label className={`flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-all ${isUploaded ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 hover:border-indigo-400 bg-slate-50'}`}>
+                          <div className={`p-2 rounded-full ${isUploaded ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                            {isUploading ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : isUploaded ? (
+                              <CheckCircle className="w-5 h-5" />
+                            ) : (
+                              <Upload className="w-5 h-5" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-semibold truncate ${preview ? 'text-emerald-700' : 'text-slate-600'}`}>
-                              {preview ? preview.name : `Click to upload ${doc.name}`}
+                            <p className={`text-sm font-semibold truncate ${isUploaded ? 'text-emerald-700' : 'text-slate-600'}`}>
+                              {isUploading ? "Uploading..." : preview ? preview.name : `Click to upload ${doc.name}`}
                             </p>
                             <p className="text-[11px] text-slate-400">PDF, JPG or PNG (Max {MAX_FILE_SIZE_MB}MB)</p>
                           </div>
                           <input 
                             type="file" 
-                            name={key}
-                            required={doc.required && !preview}
+                            required={doc.required && !isUploaded}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                if (!validateFileSize(file)) {
-                                  e.target.value = "";
-                                  return;
-                                }
                                 setDocPreviews(prev => ({
                                   ...prev,
                                   [key]: { name: file.name, url: URL.createObjectURL(file) }
                                 }));
+                                handleBackgroundUpload(file, key);
                               }
                             }}
                             className="hidden" 
                           />
                         </label>
-                        {preview && (
+                        {/* Hidden input to submit the pre-uploaded URL */}
+                        <input type="hidden" name={key} value={uploadedUrls[key] || ""} />
+
+                        {preview && !isUploading && (
                           <button
                             type="button"
                             onClick={() => {
@@ -494,10 +558,15 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
                                 delete next[key];
                                 return next;
                               });
+                              setUploadedUrls(prev => {
+                                const next = { ...prev };
+                                delete next[key];
+                                return next;
+                              });
                             }}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600 z-10"
+                            className="absolute -top-2.5 -right-2.5 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(239,68,68,0.3)] hover:bg-red-600 z-10 border-2 border-white transition-all active:scale-90"
                           >
-                            <CloseIcon className="w-3 h-3" />
+                            <CloseIcon className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
@@ -566,10 +635,10 @@ export function ApplicationFormClient({ courseId, courseTitle, initialData, edit
           <Button
             type="button"
             onClick={handleReviewClick}
-            disabled={isSubmitting}
+            disabled={isSubmitting || Object.values(uploading).some(v => v)}
             className="bg-[#2B4B8A] hover:bg-[#1E3A70] text-white rounded-md px-10 h-11 text-base font-semibold w-full md:w-auto"
           >
-            {isAdmin ? "Review & Save" : "Review Application"}
+            {Object.values(uploading).some(v => v) ? "Uploading Files…" : (isAdmin ? "Review & Save" : "Review Application")}
           </Button>
         </div>
       </div>

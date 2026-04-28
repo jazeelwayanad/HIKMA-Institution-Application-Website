@@ -47,6 +47,10 @@ export async function adminSubmitApplication(formData: FormData) {
           );
         }
       } else {
+        // If it's a new pre-uploaded URL replacing an old one, delete the old file
+        if (typeof value === "string" && value.startsWith("http") && applicantData[key] && applicantData[key] !== value && applicantData[key].startsWith("http")) {
+          await deleteFile(applicantData[key]);
+        }
         applicantData[key] = value;
       }
     }

@@ -101,7 +101,7 @@ export default async function SettingsManager() {
                         name="fileUploadSizeLimitMB" 
                         type="number" 
                         min="1" 
-                        defaultValue={settings.fileUploadSizeLimitMB}
+                        defaultValue={settings.fileUploadSizeLimitMB ?? 5}
                         className="w-full sm:w-32 h-11 border-slate-200"
                       />
                       <p className="text-sm text-slate-500 mt-1">Maximum allowed file size for photos and documents.</p>
